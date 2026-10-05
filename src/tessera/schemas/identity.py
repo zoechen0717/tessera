@@ -172,5 +172,6 @@ class Exclusion(Strict):
 
     mention_id: str
     decision_id: str
-    status: IdentityStatus
+    status: IdentityStatus | Literal["out_of_scope"]
     reason: str
+    variant_id: str | None = Field(default=None, description="Set for resolved but out-of-scope alleles")

@@ -15,7 +15,7 @@ from __future__ import annotations
 import csv
 import json
 import shutil
-from collections import defaultdict
+from collections import Counter, defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -36,7 +36,7 @@ from tessera.schemas.annotation import GeneEntity, GeneMechanismAssessment, Vari
 from tessera.schemas.base import SCHEMA_VERSION, sha256_hex
 from tessera.schemas.evidence import Claim, EvidenceLink, ValidationDecision
 from tessera.schemas.features import FeatureRow
-from tessera.schemas.identity import CanonicalVariant, VariantMention
+from tessera.schemas.identity import CanonicalVariant, Exclusion, VariantMention
 from tessera.schemas.source import SourceSnapshot
 
 
@@ -58,7 +58,7 @@ def _read_variants_tsv(path: Path, route: str) -> list[VariantMention]:
                 VariantMention(
                     mention_id=row["mention_id"],
                     raw_text=row["raw_text"],
-                    discovery_route=route,
+                    discovery_route=opt("route") or route,
                     reported_assembly=opt("assembly"),
                     reported_chrom=opt("chrom"),
                     reported_pos=int(pos) if pos else None,
@@ -107,6 +107,34 @@ def freeze(input_path: Path, out: Path) -> dict:
         if vid in reg.variants:
             annotations.append(VariantAnnotation.model_validate({**rec, "variant_id": vid}))
 
+    # consequence scope: resolved alleles outside it leave the registry but stay
+    # visible as exclusions (R-03, SPEC §8.1)
+    allowed = set((cfg.get("scope") or {}).get("allowed_consequences") or [])
+    if allowed:
+        by_vid = {a.variant_id: a for a in annotations}
+        for vid in sorted(reg.variants):
+            if vid not in by_vid:  # annotation failed: keep, flagged downstream
+                continue
+            effect = by_vid[vid].selected_effect()
+            terms = list(effect.consequences) if effect else []
+            if allowed & set(terms):
+                continue
+            for mid in [m for m, v in reg.mention_to_variant.items() if v == vid]:
+                reg.exclusions.append(
+                    Exclusion(
+                        mention_id=mid,
+                        decision_id=reg.mention_to_decision[mid],
+                        status="out_of_scope",
+                        reason=("consequence " + ",".join(terms) if terms else "no consequence on the selected transcript")
+                        + " outside declared scope",
+                        variant_id=vid,
+                    )
+                )
+                del reg.mention_to_variant[mid]
+            del reg.variants[vid]
+            reg.roles.pop(vid, None)
+        annotations = [a for a in annotations if a.variant_id in reg.variants]
+
     # snapshots: copy raw content, verify content addressing
     snap_dir = out / "snapshots"
     snap_dir.mkdir(exist_ok=True)
@@ -148,11 +176,13 @@ def freeze(input_path: Path, out: Path) -> dict:
         if l.strip()
     ]
     id_decisions = {d.decision_id: d for d in reg.decisions}
+    out_of_scope = {e.mention_id for e in reg.exclusions if e.status == "out_of_scope"}
     seq = max((d.sequence for d in decisions), default=0)
     for link in links:
         claim = claim_by_key[(link.claim_id, link.claim_revision)]
         seq += 1
-        decisions.append(host_decision(link, claim, id_decisions, snap_by_id, contents, seq))
+        decisions.append(host_decision(link, claim, id_decisions, snap_by_id, contents, seq,
+                                       out_of_scope=link.mention_id in out_of_scope))
 
     mechanism = GeneMechanismAssessment.model_validate(json.loads((base / cfg["mechanism"]).read_text()))
     if mechanism.gene_id != gene.gene_id:
@@ -269,8 +299,12 @@ def derive(bundle_dir: Path, out: Path, *, mode: str) -> Derived:
     (out / "ranked_variants.csv").write_text(render_csv(ranked, feat_by_id), encoding="utf-8")
     B.write_json(out / "strata_report.json", [s.model_dump(mode="json") for s in strata])
     scope = B.read_json(bundle_dir / "resolved_scope.json")
+    source_failures = (yaml.safe_load((bundle_dir / "input.yaml").read_text()).get("provenance") or {}).get(
+        "source_failures") or []
     exclusions = [json.loads(l) for l in (bundle_dir / "exclusions.jsonl").read_text().splitlines() if l]
-    n_mentions = len((bundle_dir / "candidate_mentions.jsonl").read_text().splitlines())
+    mentions = [json.loads(l) for l in (bundle_dir / "candidate_mentions.jsonl").read_text().splitlines() if l]
+    routes = dict(sorted(Counter(m["discovery_route"] for m in mentions).items()))
+    scope_links = sorted({d.link_id for d in decisions if d.checks.get("scope") == "fail"})
     report = render_report(
         scope=scope,
         policy=policy,
@@ -279,9 +313,12 @@ def derive(bundle_dir: Path, out: Path, *, mode: str) -> Derived:
         ranked=ranked,
         strata=strata,
         exclusions=exclusions,
-        n_mentions=n_mentions,
+        n_mentions=len(mentions),
+        routes=routes,
+        n_scope_links=len(scope_links),
         link_states={k: v.value for k, v in sorted(states.items())},
         obs_search=obs_search,
+        source_failures=source_failures,
     )
     (out / "report.md").write_text(report, encoding="utf-8")
 
@@ -303,7 +340,8 @@ def derive(bundle_dir: Path, out: Path, *, mode: str) -> Derived:
         "network_calls": 0,
         "llm_calls": 0,
         "not_in_scope": {"datasets": "GEO research is M1b", "editing": "not_assessed", "panel": "panel step not implemented"},
-        "run_status": "complete",
+        "source_failures": source_failures,
+        "run_status": "partial" if source_failures else "complete",
     }
     B.write_json(out / "manifest.json", manifest)
     return Derived(features=features, content_digest=content, artifact_digests=artifact_digests)

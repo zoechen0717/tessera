@@ -11,7 +11,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 
-from tessera.identity.reference import ReferenceBundle
+from tessera.identity.reference import ReferenceBundle, ReferenceError_
 from tessera.schemas.identity import (
     IDENTITY_VERSION,
     AlleleType,
@@ -82,8 +82,6 @@ def _left_align(ref_bundle: ReferenceBundle, chrom: str, pos: int, ref: str, alt
             ref, alt = ref[:-1], alt[:-1]
             changed = True
         if not ref or not alt:
-            if pos <= 1:
-                raise ValueError("cannot extend allele left of contig start")
             pos -= 1
             base = ref_bundle.fetch(chrom, pos, 1)
             ref, alt = base + ref, base + alt
@@ -121,17 +119,21 @@ def normalize(
         )
     if ref == alt:
         return NormalizationResult(IdentityStatus.INSUFFICIENT, errors=["ref equals alt"])
-    try:
-        observed = ref_bundle.fetch(chrom, pos_1based, len(ref))
-    except Exception as exc:  # out of range
-        return NormalizationResult(IdentityStatus.REF_MISMATCH, errors=[str(exc)])
+    if not ref_bundle.contains(chrom, pos_1based, len(ref)):
+        return NormalizationResult(
+            IdentityStatus.UNMAPPED, errors=[f"{chrom}:{pos_1based} outside the reference bundle"]
+        )
+    observed = ref_bundle.fetch(chrom, pos_1based, len(ref))
     if observed != ref:
         return NormalizationResult(
             IdentityStatus.REF_MISMATCH,
             errors=[f"REF {ref} != reference {observed} at {chrom}:{pos_1based}"],
         )
 
-    pos, nref, nalt = _left_align(ref_bundle, chrom, pos_1based, ref, alt)
+    try:
+        pos, nref, nalt = _left_align(ref_bundle, chrom, pos_1based, ref, alt)
+    except ReferenceError_ as exc:
+        return NormalizationResult(IdentityStatus.UNMAPPED, errors=[f"left-alignment left the bundle: {exc}"])
     if ref_bundle.fetch(chrom, pos, len(nref)) != nref:  # defensive re-check (step 8)
         return NormalizationResult(IdentityStatus.REF_MISMATCH, errors=["post-normalization REF check failed"])
 

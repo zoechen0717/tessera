@@ -46,8 +46,11 @@ def render_report(
     strata: list[StratumReport],
     exclusions: list[dict],
     n_mentions: int,
+    routes: dict[str, int],
+    n_scope_links: int,
     link_states: dict[str, str],
     obs_search: dict,
+    source_failures: list[str] = (),
 ) -> str:
     gene = scope["gene"]
     L: list[str] = []
@@ -63,11 +66,15 @@ def render_report(
         "This table is a nomination for review, not an optimized or ready-to-order panel.")
     add("")
 
+    if source_failures:
+        add("> **PARTIAL RUN.** Optional sources failed: " + "; ".join(source_failures))
+        add("")
     add("## Scope and coverage")
     add("")
     add(f"- Gene: `{gene['gene_id']}` ({gene['symbol']}), assembly `{scope['assembly']}`, "
         f"reference bundle `{scope['reference_bundle_id']}`")
-    add(f"- Candidate route: manual input only (M0). Mentions: {n_mentions}; "
+    add("- Candidate routes: " + ", ".join(f"{r} ({n} mentions)" for r, n in routes.items()))
+    add(f"- Mentions: {n_mentions}; "
         f"resolved alleles: {len(features)}; excluded mentions: {len(exclusions)}")
     for status, n in sorted(Counter(e["status"] for e in exclusions).items()):
         add(f"  - excluded `{status}`: {n}")
@@ -75,7 +82,8 @@ def render_report(
         + (f" ({obs_search.get('scope')})" if obs_search.get("scope") else ""))
     states = Counter(link_states.values())
     add(f"- Evidence links: {len(link_states)} — "
-        + ", ".join(f"{k} {v}" for k, v in sorted(states.items())))
+        + ", ".join(f"{k} {v}" for k, v in sorted(states.items()))
+        + (f" (of the rejected, {n_scope_links} belong to out-of-scope alleles)" if n_scope_links else ""))
     add("- Not assessed in this run: editing feasibility (all `not_assessed`), GEO datasets, "
         "literature discovery (M1b).")
     if scope.get("requested_panel_size") is not None:
@@ -149,12 +157,20 @@ def render_report(
 
     add("## Excluded mentions")
     add("")
-    if exclusions:
+    listed = [e for e in exclusions if e["status"] != "out_of_scope"]
+    n_scope = len(exclusions) - len(listed)
+    if n_scope:
+        add(f"{n_scope} resolved alleles fell outside the declared consequence scope "
+            "(listed in exclusions.jsonl).")
+        add("")
+    if listed:
         add("| mention | status | reason |")
         add("|---|---|---|")
-        for e in exclusions:
+        for e in listed[:100]:
             add(f"| {e['mention_id']} | {e['status']} | {e['reason']} |")
-    else:
+        if len(listed) > 100:
+            add(f"| … | | {len(listed) - 100} more in exclusions.jsonl |")
+    elif not n_scope:
         add("None.")
     add("")
     add("## Limitations")

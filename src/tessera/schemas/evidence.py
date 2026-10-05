@@ -82,6 +82,9 @@ class AssociationRecord(Strict):
 
     cohort_id: str
     study_design: str
+    count_unit: Literal["carriers", "alleles"] = Field(
+        description="Source-reported unit; allele counts are not converted to carriers"
+    )
     cases_with_allele: Observed[int]
     case_total: Observed[int]
     controls_with_allele: Observed[int]
@@ -181,7 +184,7 @@ class ValidationDecision(Strict):
     policy_version: str
     checks: dict[str, CheckResult] = Field(default_factory=dict)
     reasons: list[str] = Field(default_factory=list)
-    reviewer_type: Literal["host", "model", "human"]
+    reviewer_type: Literal["host", "importer", "model", "human"]
     reviewer_id: str
     human_review: Literal["unreviewed", "accepted", "rejected", "needs_revision"] = "unreviewed"
     effective_state: ValidationState

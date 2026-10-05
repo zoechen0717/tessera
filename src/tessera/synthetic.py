@@ -236,7 +236,7 @@ def build(dest: Path, mechanism: str = "loss_of_function", policy_path: Path | N
             "subject_gene_ids": [GENE_ID], "source_reported_mention_ids": [mid],
             "claim_text": f"Allele {mid} observed in {row['cases']} case(s) in {doc['cohort']}.",
             "association": {
-                "cohort_id": doc["cohort"], "study_design": "case_control_counts",
+                "cohort_id": doc["cohort"], "study_design": "case_control_counts", "count_unit": "carriers",
                 "cases_with_allele": count(row["cases"], snap), "case_total": count(row.get("case_total"), snap),
                 "controls_with_allele": count(row.get("controls"), snap),
                 "control_total": count(row.get("control_total"), snap), "analysis_unit": "allele",

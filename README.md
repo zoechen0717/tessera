@@ -18,12 +18,13 @@ Specification: [`variant-agent-spec-v2/`](variant-agent-spec-v2/) — version
 | Milestone | Scope | State |
 |---|---|---|
 | **M0** | Contracts, genomic identity, frozen bundle, `nomination_v0.1`, exports, replay — synthetic data only | **done** |
-| M1a | Real GRCh38/MANE, ClinVar, gnomAD, consequence, AlphaMissense, splice predictor, gene mechanism; first real SETD1A table; no LLM | next |
+| **M1a** | Real GRCh38/MANE, ClinVar, SCHEMA, gnomAD, VEP (consequence, AlphaMissense, SpliceAI, LOFTEE), UniProt, ClinGen; first real SETD1A table; no LLM | **done** |
 | M1b | Literature / GEO workers, claim extraction, SQLite + checkpoints, AlphaGenome Atlas | — |
 | Eval | MAVE/DMS cross-gene benchmark; SETD1A scPRIME case study | — |
 | Panel | Per-stratum quotas, controls, editing constraints | — |
 
-There is no LLM and no network access anywhere in the current code.
+There is no LLM anywhere. Network access exists only in `tessera fetch`
+(`src/tessera/sources/`); freeze, ranking and replay are offline.
 
 ## Ranking in one paragraph
 
@@ -40,7 +41,11 @@ are flagged as having done no work. All of this is **provisional policy**.
 ## Quick start
 
 ```bash
-./.venv/bin/python -m pytest tests -q            # 41 tests
+./.venv/bin/python -m pytest tests -q            # 51 tests
+# real gene (network, ~1 min): fetch → run → replay
+PYTHONPATH=src ./.venv/bin/python -m tessera.cli fetch --request requests/setd1a_schizophrenia.yaml --output runs/setd1a/input
+PYTHONPATH=src ./.venv/bin/python -m tessera.cli run --input runs/setd1a/input/input.yaml --output runs/setd1a/run
+PYTHONPATH=src ./.venv/bin/python -m tessera.cli replay --bundle runs/setd1a/run --output runs/setd1a/replay
 ./.venv/bin/python examples/synthetic_demo.py    # build fixture → run → replay
 PYTHONPATH=src ./.venv/bin/python -m tessera.cli run --input <input.yaml> --output <dir>
 PYTHONPATH=src ./.venv/bin/python -m tessera.cli replay --bundle <dir> --output <dir2>
@@ -61,12 +66,15 @@ src/tessera/
   identity/     pinned reference bundle, left-align normalization, registry
   evidence/     host mechanical validation, effective-state resolution
   ranking/      policy loader, per-allele features, stratified ranking
+  sources/      M1a adapters (Ensembl/VEP, gnomAD, SCHEMA, ClinVar, UniProt, ClinGen)
+  m1a.py        fetch: sources → snapshots → input directory
   pipeline.py   freeze → derive; run; replay
   bundle.py     canonical JSONL bundle and digests
   reporting.py  ranked_variants.csv, report.md (deterministic)
   synthetic.py  synthetic EVAL-B0 fixture builder
   cli.py
-tests/          identity, evidence, ranking, replay
+requests/       per-gene M1a requests (setd1a_schizophrenia.yaml)
+tests/          identity, evidence, ranking, replay, source parsers (real excerpts)
 archive/phase0/ superseded weighted-composite scorer (not on the import path)
 ```
 

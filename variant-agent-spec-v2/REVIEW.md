@@ -43,7 +43,12 @@ Still open, with build defaults:
 | Source | Checked | Finding |
 |---|---|---|
 | AlphaGenome Atlas / AVI | 2026-10-05, DeepMind blog (2026-09-08) and secondary coverage | Exists. All possible SNVs plus ~100M observed indels; web portal + API; **non-commercial academic license**; AVI integrates AlphaGenome + AlphaMissense + conservation, with SHAP-style decomposition. Consequence: AVI and AlphaMissense are not independent (DEC-12). Endpoint paths and release definitions not yet verified against API docs — builder must do this in M1a |
-| Other adapters | not checked | ClinVar, gnomAD, VEP, UniProt/InterPro, ClinGen, G2P, MaveDB, Europe PMC, GEO must be verified at M1a/M1b implementation time |
+| Ensembl REST 116 | 2026-10-05, live calls | /lookup (MANE), /info/assembly synonyms, /sequence/region, POST /vep/homo_sapiens/region with AlphaMissense, SpliceAI, LoF (LOFTEE) — all return data; VEP does not check REF |
+| gnomAD | 2026-10-05, live GraphQL | `gene(...){gnomad_constraint, variants(dataset: gnomad_r4)}` works; SETD1A LOEUF 0.26, pLI 1 |
+| SCHEMA browser | 2026-10-05, live REST | `/api/gene/<ENSG>` and `/api/gene/<ENSG>/variants`; field names from `/config.js`; per-allele ac/an case and control, n_de_novo, in_analysis; GRCh38 |
+| ClinVar | 2026-10-05, E-utilities | esearch/esummary JSON with canonical SPDI; 967 SETD1A records |
+| UniProt / ClinGen | 2026-10-05 | UniProt O15047 sequence identical to ENSP00000262519; ClinGen SETD1A HI score 3, disease MONDO:0005090 |
+| G2P, MaveDB, Europe PMC, GEO | not checked | Verify at M1b / evaluation time |
 
 ## 5. Schema/policy changes and migration
 

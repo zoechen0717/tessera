@@ -27,6 +27,7 @@ class ReferenceBundle:
     fasta_sha256: str
     contig_accessions: dict[str, str]
     sequences: dict[str, str]
+    offsets: dict[str, int]
 
     @classmethod
     def load(cls, manifest_path: Path) -> "ReferenceBundle":
@@ -40,7 +41,14 @@ class ReferenceBundle:
                 f"{manifest['fasta_sha256'][:12]}…, file {digest[:12]}…"
             )
         sequences = _parse_fasta(raw.decode("ascii"))
-        accessions = dict(manifest["contigs"])
+        # A contig is either `name: accession` (whole sequence) or
+        # `name: {accession, start}` (a slice whose first base is `start`).
+        accessions, offsets = {}, {}
+        for name, spec in manifest["contigs"].items():
+            if isinstance(spec, dict):
+                accessions[str(name)], offsets[str(name)] = spec["accession"], int(spec["start"]) - 1
+            else:
+                accessions[str(name)], offsets[str(name)] = spec, 0
         missing = set(accessions) - set(sequences)
         if missing:
             raise ReferenceError_(f"contigs declared but absent from FASTA: {sorted(missing)}")
@@ -51,6 +59,7 @@ class ReferenceBundle:
             fasta_sha256=digest,
             contig_accessions=accessions,
             sequences=sequences,
+            offsets=offsets,
         )
 
     def has_contig(self, chrom: str) -> bool:
@@ -59,15 +68,21 @@ class ReferenceBundle:
     def accession(self, chrom: str) -> str:
         return self.contig_accessions[chrom]
 
-    def length(self, chrom: str) -> int:
-        return len(self.sequences[chrom])
+    def span(self, chrom: str) -> tuple[int, int]:
+        """1-based inclusive coordinates covered for this contig."""
+        off = self.offsets[chrom]
+        return off + 1, off + len(self.sequences[chrom])
+
+    def contains(self, chrom: str, pos_1based: int, length: int = 1) -> bool:
+        lo, hi = self.span(chrom)
+        return lo <= pos_1based and pos_1based + length - 1 <= hi
 
     def fetch(self, chrom: str, pos_1based: int, length: int) -> str:
-        """Reference bases [pos, pos+length) in 1-based coordinates."""
-        seq = self.sequences[chrom]
-        if pos_1based < 1 or pos_1based - 1 + length > len(seq):
-            raise ReferenceError_(f"{chrom}:{pos_1based}+{length} outside contig")
-        return seq[pos_1based - 1 : pos_1based - 1 + length]
+        """Reference bases [pos, pos+length) in 1-based genomic coordinates."""
+        if not self.contains(chrom, pos_1based, length):
+            raise ReferenceError_(f"{chrom}:{pos_1based}+{length} outside the reference bundle")
+        i = pos_1based - 1 - self.offsets[chrom]
+        return self.sequences[chrom][i : i + length]
 
 
 def _parse_fasta(text: str) -> dict[str, str]:

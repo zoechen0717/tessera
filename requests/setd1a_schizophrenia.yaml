@@ -1,0 +1,50 @@
+# M1a request: SETD1A / schizophrenia. Choices marked PROVISIONAL await owner review.
+gene: SETD1A
+disease:
+  input: schizophrenia
+  concept_id: "MONDO:0005090"
+flank: 2000                      # bp around the gene in the reference slice
+
+routes:
+  clinvar: true                  # all gene-level ClinVar records, disease-matched or not
+  schema_browser: true           # SCHEMA alleles seen in >=1 case
+manual_variants: []              # e.g. the existing scPRIME panel for a recall check
+
+# SCHEMA is a schizophrenia case-control exome study, so its cases match the
+# query disease exactly. This is a declared mapping, not inferred.
+case_cohorts:
+  schema_browser: {disease_relationship: exact}
+
+scope:
+  allowed_consequences:
+    - stop_gained
+    - frameshift_variant
+    - splice_acceptor_variant
+    - splice_donor_variant
+    - splice_donor_5th_base_variant
+    - splice_region_variant
+    - splice_donor_region_variant
+    - splice_polypyrimidine_tract_variant
+    - inframe_insertion
+    - inframe_deletion
+    - missense_variant
+    - synonymous_variant
+    - start_lost
+    - stop_lost
+    - protein_altering_variant
+
+# PROVISIONAL mechanism rule (mechanism_rule_v0.1)
+mechanism_rule:
+  clingen_hi_scores_for_lof: [3]
+  burden_max_p: 2.5e-6           # SCHEMA PTV burden p-value threshold; owner to confirm
+
+screen_context:
+  species: Homo sapiens
+  cell_type: iPSC-derived neuron
+  assay: scPRIME
+  editing_mode: prime_editing
+  genotype_target: heterozygous
+  host_background: null
+
+policy: ../config/nomination_v0.1.yaml
+requested_panel_size: null

@@ -1,0 +1,824 @@
+{
+ "_note": "Verbatim excerpts of real public API responses captured 2026-10-05 by `tessera fetch` for SETD1A (Ensembl 116 VEP, SCHEMA browser, gnomAD r4, ClinVar). Used only to test parsers.",
+ "clinvar": [
+  {
+   "accession": "VCV003764657",
+   "canonical_spdi": "NC_000016.10:30964141:GGCACC:GGCACCGGCACC",
+   "kind": "other",
+   "title": "NM_014712.3(SETD1A):c.688_693dup (p.Thr231_Thr232insGlyThr)",
+   "variation_loc": [
+    {
+     "alt": "",
+     "annotation_release": "",
+     "assembly_acc_ver": "GCF_000001405.38",
+     "assembly_name": "GRCh38",
+     "band": "16p11.2",
+     "chr": "16",
+     "display_start": "30964141",
+     "display_stop": "30964142",
+     "inner_start": "",
+     "inner_stop": "",
+     "outer_start": "",
+     "outer_stop": "",
+     "ref": "",
+     "start": "30964141",
+     "status": "current",
+     "stop": "30964142"
+    },
+    {
+     "alt": "",
+     "annotation_release": "",
+     "assembly_acc_ver": "GCF_000001405.25",
+     "assembly_name": "GRCh37",
+     "band": "16p11.2",
+     "chr": "16",
+     "display_start": "30975462",
+     "display_stop": "30975463",
+     "inner_start": "",
+     "inner_stop": "",
+     "outer_start": "",
+     "outer_stop": "",
+     "ref": "",
+     "start": "30975462",
+     "status": "previous",
+     "stop": "30975463"
+    }
+   ]
+  },
+  {
+   "accession": "VCV003764399",
+   "canonical_spdi": "NC_000016.10:30971541:T:C",
+   "kind": "snv",
+   "title": "NM_014712.3(SETD1A):c.3181T>C (p.Ser1061Pro)",
+   "variation_loc": [
+    {
+     "alt": "",
+     "annotation_release": "",
+     "assembly_acc_ver": "GCF_000001405.38",
+     "assembly_name": "GRCh38",
+     "band": "16p11.2",
+     "chr": "16",
+     "display_start": "30971542",
+     "display_stop": "30971542",
+     "inner_start": "",
+     "inner_stop": "",
+     "outer_start": "",
+     "outer_stop": "",
+     "ref": "",
+     "start": "30971542",
+     "status": "current",
+     "stop": "30971542"
+    },
+    {
+     "alt": "",
+     "annotation_release": "",
+     "assembly_acc_ver": "GCF_000001405.25",
+     "assembly_name": "GRCh37",
+     "band": "16p11.2",
+     "chr": "16",
+     "display_start": "30982863",
+     "display_stop": "30982863",
+     "inner_start": "",
+     "inner_stop": "",
+     "outer_start": "",
+     "outer_stop": "",
+     "ref": "",
+     "start": "30982863",
+     "status": "previous",
+     "stop": "30982863"
+    }
+   ]
+  },
+  {
+   "accession": "VCV003378411",
+   "canonical_spdi": "NC_000016.10:30961355:T:",
+   "kind": "del",
+   "title": "NM_014712.3(SETD1A):c.336del (p.Asp112fs)",
+   "variation_loc": [
+    {
+     "alt": "",
+     "annotation_release": "",
+     "assembly_acc_ver": "GCF_000001405.38",
+     "assembly_name": "GRCh38",
+     "band": "16p11.2",
+     "chr": "16",
+     "display_start": "30961356",
+     "display_stop": "30961356",
+     "inner_start": "",
+     "inner_stop": "",
+     "outer_start": "",
+     "outer_stop": "",
+     "ref": "",
+     "start": "30961356",
+     "status": "current",
+     "stop": "30961356"
+    },
+    {
+     "alt": "",
+     "annotation_release": "",
+     "assembly_acc_ver": "GCF_000001405.25",
+     "assembly_name": "GRCh37",
+     "band": "16p11.2",
+     "chr": "16",
+     "display_start": "30972677",
+     "display_stop": "30972677",
+     "inner_start": "",
+     "inner_stop": "",
+     "outer_start": "",
+     "outer_stop": "",
+     "ref": "",
+     "start": "30972677",
+     "status": "previous",
+     "stop": "30972677"
+    }
+   ]
+  }
+ ],
+ "gnomad": [
+  {
+   "alt": "T",
+   "exome": {
+    "ac": 0,
+    "an": 1308274,
+    "filters": [
+     "AC0",
+     "AS_VQSR"
+    ]
+   },
+   "genome": null,
+   "pos": 30958658,
+   "ref": "G",
+   "variant_id": "16-30958658-G-T"
+  },
+  {
+   "alt": "C",
+   "exome": {
+    "ac": 1,
+    "an": 1308274,
+    "filters": []
+   },
+   "genome": {
+    "ac": 1,
+    "an": 152328,
+    "filters": []
+   },
+   "pos": 30958658,
+   "ref": "G",
+   "variant_id": "16-30958658-G-C"
+  }
+ ],
+ "schema": {
+  "group_fields": [
+   "ac_case",
+   "an_case",
+   "ac_ctrl",
+   "an_ctrl",
+   "n_de_novo",
+   "in_analysis"
+  ],
+  "rows": [
+   [
+    "16-30958735-G-T",
+    30958735,
+    "missense_variant",
+    "c.4G>T",
+    "p.Asp2Tyr",
+    [
+     86.503,
+     2.6571,
+     0.8103,
+     0.0048818,
+     -3.484
+    ],
+    [
+     [
+      1,
+      67868,
+      0,
+      133196,
+      0,
+      false
+     ]
+    ]
+   ],
+   [
+    "16-30958745-G-A",
+    30958745,
+    "missense_variant",
+    "c.14G>A",
+    "p.Gly5Asp",
+    [
+     73.945,
+     2.4154,
+     0.4469,
+     0.0013713,
+     -3.336
+    ],
+    [
+     [
+      0,
+      67868,
+      1,
+      133196,
+      0,
+      false
+     ]
+    ]
+   ],
+   [
+    "16-30958748-G-A",
+    30958748,
+    "missense_variant",
+    "c.17G>A",
+    "p.Gly6Glu",
+    [
+     71.966,
+     2.3439,
+     0.4423,
+     0.0014689,
+     -3.23
+    ],
+    [
+     [
+      1,
+      67868,
+      0,
+      133196,
+      0,
+      false
+     ]
+    ]
+   ]
+  ],
+  "variant_fields": [
+   "variant_id",
+   "pos",
+   "consequence",
+   "hgvsc",
+   "hgvsp",
+   "info",
+   "group_results"
+  ]
+ },
+ "vep": {
+  "frameshift": {
+   "allele_string": "-/CCACTTCTCTGCATCTTCAGCCT",
+   "assembly_name": "GRCh38",
+   "end": 30964677,
+   "id": ".",
+   "input": "16 30964677 . G GCCACTTCTCTGCATCTTCAGCCT . . .",
+   "most_severe_consequence": "frameshift_variant",
+   "seq_region_name": "16",
+   "start": 30964678,
+   "strand": 1,
+   "transcript_consequences": [
+    {
+     "amino_acids": "R/RHFSASSAX",
+     "biotype": "protein_coding",
+     "canonical": 1,
+     "cdna_end": 1162,
+     "cdna_start": 1161,
+     "cds_end": 936,
+     "cds_start": 935,
+     "codons": "cgc/cgCCACTTCTCTGCATCTTCAGCCTc",
+     "consequence_terms": [
+      "frameshift_variant"
+     ],
+     "gene_id": "ENSG00000099381",
+     "gene_symbol": "SETD1A",
+     "gene_symbol_source": "HGNC",
+     "hgnc_id": "HGNC:29010",
+     "hgvs_offset": 27,
+     "hgvsc": "ENST00000262519.14:c.940_962dup",
+     "hgvsp": "ENSP00000262519.8:p.Thr322SerfsTer183",
+     "impact": "HIGH",
+     "lof": "HC",
+     "lof_info": "PERCENTILE:0.187743950039032,GERP_DIST:2897.56778367758,BP_DIST:4176,DIST_FROM_LAST_EXON:4003,50_BP_RULE:PASS,ANN_ORF:6054.66,MAX_ORF:6054.66",
+     "mane": [
+      "MANE_Select"
+     ],
+     "mane_select": "NM_014712.3",
+     "protein_end": 312,
+     "protein_start": 312,
+     "strand": 1,
+     "transcript_id": "ENST00000262519",
+     "variant_allele": "CCACTTCTCTGCATCTTCAGCCT"
+    },
+    {
+     "biotype": "protein_coding",
+     "consequence_terms": [
+      "downstream_gene_variant"
+     ],
+     "distance": 354,
+     "flags": [
+      "cds_end_NF"
+     ],
+     "gene_id": "ENSG00000099381",
+     "gene_symbol": "SETD1A",
+     "gene_symbol_source": "HGNC",
+     "hgnc_id": "HGNC:29010",
+     "impact": "MODIFIER",
+     "strand": 1,
+     "transcript_id": "ENST00000682768",
+     "variant_allele": "CCACTTCTCTGCATCTTCAGCCT"
+    },
+    {
+     "amino_acids": "R/RHFSASSAX",
+     "biotype": "protein_coding",
+     "cdna_end": 1115,
+     "cdna_start": 1114,
+     "cds_end": 936,
+     "cds_start": 935,
+     "codons": "cgc/cgCCACTTCTCTGCATCTTCAGCCTc",
+     "consequence_terms": [
+      "frameshift_variant"
+     ],
+     "gene_id": "ENSG00000099381",
+     "gene_symbol": "SETD1A",
+     "gene_symbol_source": "HGNC",
+     "hgnc_id": "HGNC:29010",
+     "hgvs_offset": 27,
+     "hgvsc": "ENST00000684162.2:c.940_962dup",
+     "hgvsp": "ENSP00000507683.1:p.Thr322SerfsTer183",
+     "impact": "HIGH",
+     "lof": "HC",
+     "lof_info": "PERCENTILE:0.187743950039032,GERP_DIST:2897.56778367758,BP_DIST:4176,DIST_FROM_LAST_EXON:4003,50_BP_RULE:PASS,PHYLOCSF_TOO_SHORT",
+     "protein_end": 312,
+     "protein_start": 312,
+     "strand": 1,
+     "transcript_id": "ENST00000684162",
+     "variant_allele": "CCACTTCTCTGCATCTTCAGCCT"
+    }
+   ]
+  },
+  "missense": {
+   "allele_string": "A/G",
+   "assembly_name": "GRCh38",
+   "colocated_variants": [
+    {
+     "allele_string": "A/G",
+     "end": 30964622,
+     "frequencies": {
+      "G": {
+       "gnomade": 2.054e-06,
+       "gnomade_afr": 0,
+       "gnomade_amr": 0,
+       "gnomade_asj": 0,
+       "gnomade_eas": 0,
+       "gnomade_fin": 0,
+       "gnomade_mid": 0,
+       "gnomade_nfe": 2.699e-06,
+       "gnomade_remaining": 0,
+       "gnomade_sas": 0
+      }
+     },
+     "id": "rs770430763",
+     "seq_region_name": "16",
+     "start": 30964622,
+     "strand": 1
+    }
+   ],
+   "end": 30964622,
+   "id": ".",
+   "input": "16 30964622 . A G . . .",
+   "most_severe_consequence": "missense_variant",
+   "seq_region_name": "16",
+   "start": 30964622,
+   "strand": 1,
+   "transcript_consequences": [
+    {
+     "alphamissense": {
+      "am_class": "likely_benign",
+      "am_pathogenicity": 0.0545
+     },
+     "amino_acids": "T/A",
+     "biotype": "protein_coding",
+     "canonical": 1,
+     "cdna_end": 1106,
+     "cdna_start": 1106,
+     "cds_end": 880,
+     "cds_start": 880,
+     "codons": "Acc/Gcc",
+     "consequence_terms": [
+      "missense_variant"
+     ],
+     "gene_id": "ENSG00000099381",
+     "gene_symbol": "SETD1A",
+     "gene_symbol_source": "HGNC",
+     "hgnc_id": "HGNC:29010",
+     "hgvsc": "ENST00000262519.14:c.880A>G",
+     "hgvsp": "ENSP00000262519.8:p.Thr294Ala",
+     "impact": "MODERATE",
+     "mane": [
+      "MANE_Select"
+     ],
+     "mane_select": "NM_014712.3",
+     "polyphen_prediction": "benign",
+     "polyphen_score": 0.007,
+     "protein_end": 294,
+     "protein_start": 294,
+     "sift_prediction": "tolerated_low_confidence",
+     "sift_score": 0.11,
+     "spliceai": {
+      "DP_AG": 1,
+      "DP_AL": 12,
+      "DP_DG": 19,
+      "DP_DL": 12,
+      "DS_AG": 0.04,
+      "DS_AL": 0,
+      "DS_DG": 0,
+      "DS_DL": 0,
+      "SYMBOL": "SETD1A"
+     },
+     "strand": 1,
+     "transcript_id": "ENST00000262519",
+     "variant_allele": "G"
+    },
+    {
+     "biotype": "protein_coding",
+     "consequence_terms": [
+      "downstream_gene_variant"
+     ],
+     "distance": 299,
+     "flags": [
+      "cds_end_NF"
+     ],
+     "gene_id": "ENSG00000099381",
+     "gene_symbol": "SETD1A",
+     "gene_symbol_source": "HGNC",
+     "hgnc_id": "HGNC:29010",
+     "impact": "MODIFIER",
+     "spliceai": {
+      "DP_AG": 1,
+      "DP_AL": 12,
+      "DP_DG": 19,
+      "DP_DL": 12,
+      "DS_AG": 0.04,
+      "DS_AL": 0,
+      "DS_DG": 0,
+      "DS_DL": 0,
+      "SYMBOL": "SETD1A"
+     },
+     "strand": 1,
+     "transcript_id": "ENST00000682768",
+     "variant_allele": "G"
+    },
+    {
+     "alphamissense": {
+      "am_class": "likely_benign",
+      "am_pathogenicity": 0.0545
+     },
+     "amino_acids": "T/A",
+     "biotype": "protein_coding",
+     "cdna_end": 1059,
+     "cdna_start": 1059,
+     "cds_end": 880,
+     "cds_start": 880,
+     "codons": "Acc/Gcc",
+     "consequence_terms": [
+      "missense_variant"
+     ],
+     "gene_id": "ENSG00000099381",
+     "gene_symbol": "SETD1A",
+     "gene_symbol_source": "HGNC",
+     "hgnc_id": "HGNC:29010",
+     "hgvsc": "ENST00000684162.2:c.880A>G",
+     "hgvsp": "ENSP00000507683.1:p.Thr294Ala",
+     "impact": "MODERATE",
+     "polyphen_prediction": "benign",
+     "polyphen_score": 0.007,
+     "protein_end": 294,
+     "protein_start": 294,
+     "sift_prediction": "tolerated_low_confidence",
+     "sift_score": 0.11,
+     "spliceai": {
+      "DP_AG": 1,
+      "DP_AL": 12,
+      "DP_DG": 19,
+      "DP_DL": 12,
+      "DS_AG": 0.04,
+      "DS_AL": 0,
+      "DS_DG": 0,
+      "DS_DL": 0,
+      "SYMBOL": "SETD1A"
+     },
+     "strand": 1,
+     "transcript_id": "ENST00000684162",
+     "variant_allele": "G"
+    }
+   ]
+  },
+  "splice": {
+   "allele_string": "T/C",
+   "assembly_name": "GRCh38",
+   "colocated_variants": [
+    {
+     "allele_string": "T/A/C/G",
+     "clin_sig": [
+      "uncertain_significance"
+     ],
+     "clin_sig_allele": "C:uncertain_significance",
+     "clin_sig_ref_allele": "T",
+     "end": 30957966,
+     "frequencies": {
+      "C": {
+       "gnomade": 0,
+       "gnomade_eas": 0,
+       "gnomade_fin": 0,
+       "gnomade_mid": 0,
+       "gnomade_nfe": 0,
+       "gnomade_remaining": 0,
+       "gnomade_sas": 0,
+       "gnomadg": 6.582e-06,
+       "gnomadg_afr": 0,
+       "gnomadg_ami": 0,
+       "gnomadg_amr": 0,
+       "gnomadg_asj": 0,
+       "gnomadg_eas": 0,
+       "gnomadg_fin": 0,
+       "gnomadg_mid": 0,
+       "gnomadg_nfe": 1.473e-05,
+       "gnomadg_remaining": 0,
+       "gnomadg_sas": 0
+      }
+     },
+     "id": "rs1481565379",
+     "phenotype_or_disease": 1,
+     "seq_region_name": "16",
+     "start": 30957966,
+     "strand": 1,
+     "var_synonyms": {
+      "ClinVar": [
+       "RCV005256154",
+       "VCV003777415"
+      ]
+     }
+    }
+   ],
+   "end": 30957966,
+   "id": ".",
+   "input": "16 30957966 . T C . . .",
+   "most_severe_consequence": "splice_donor_variant",
+   "regulatory_feature_consequences": [
+    {
+     "biotype": "promoter",
+     "consequence_terms": [
+      "regulatory_region_variant"
+     ],
+     "impact": "MODIFIER",
+     "regulatory_feature_id": "ENSR16_B85TS",
+     "variant_allele": "C"
+    }
+   ],
+   "seq_region_name": "16",
+   "start": 30957966,
+   "strand": 1,
+   "transcript_consequences": [
+    {
+     "biotype": "protein_coding",
+     "canonical": 1,
+     "consequence_terms": [
+      "splice_donor_variant"
+     ],
+     "gene_id": "ENSG00000099381",
+     "gene_symbol": "SETD1A",
+     "gene_symbol_source": "HGNC",
+     "hgnc_id": "HGNC:29010",
+     "hgvsc": "ENST00000262519.14:c.-16+2T>C",
+     "impact": "HIGH",
+     "lof": "LC",
+     "lof_filter": "5UTR_SPLICE",
+     "lof_info": "INTRON_SIZE:752",
+     "mane": [
+      "MANE_Select"
+     ],
+     "mane_select": "NM_014712.3",
+     "spliceai": {
+      "DP_AG": 16,
+      "DP_AL": -1,
+      "DP_DG": 14,
+      "DP_DL": -2,
+      "DS_AG": 0,
+      "DS_AL": 0,
+      "DS_DG": 0.13,
+      "DS_DL": 0.57,
+      "SYMBOL": "SETD1A"
+     },
+     "strand": 1,
+     "transcript_id": "ENST00000262519",
+     "variant_allele": "C"
+    },
+    {
+     "biotype": "protein_coding",
+     "consequence_terms": [
+      "upstream_gene_variant"
+     ],
+     "distance": 330,
+     "flags": [
+      "cds_end_NF"
+     ],
+     "gene_id": "ENSG00000099381",
+     "gene_symbol": "SETD1A",
+     "gene_symbol_source": "HGNC",
+     "hgnc_id": "HGNC:29010",
+     "impact": "MODIFIER",
+     "spliceai": {
+      "DP_AG": 16,
+      "DP_AL": -1,
+      "DP_DG": 14,
+      "DP_DL": -2,
+      "DS_AG": 0,
+      "DS_AL": 0,
+      "DS_DG": 0.13,
+      "DS_DL": 0.57,
+      "SYMBOL": "SETD1A"
+     },
+     "strand": 1,
+     "transcript_id": "ENST00000452917",
+     "variant_allele": "C"
+    },
+    {
+     "biotype": "protein_coding",
+     "consequence_terms": [
+      "intron_variant"
+     ],
+     "flags": [
+      "cds_end_NF"
+     ],
+     "gene_id": "ENSG00000099381",
+     "gene_symbol": "SETD1A",
+     "gene_symbol_source": "HGNC",
+     "hgnc_id": "HGNC:29010",
+     "hgvsc": "ENST00000682768.1:c.-16+41T>C",
+     "impact": "MODIFIER",
+     "spliceai": {
+      "DP_AG": 16,
+      "DP_AL": -1,
+      "DP_DG": 14,
+      "DP_DL": -2,
+      "DS_AG": 0,
+      "DS_AL": 0,
+      "DS_DG": 0.13,
+      "DS_DL": 0.57,
+      "SYMBOL": "SETD1A"
+     },
+     "strand": 1,
+     "transcript_id": "ENST00000682768",
+     "variant_allele": "C"
+    }
+   ]
+  },
+  "synonymous": {
+   "allele_string": "T/C",
+   "assembly_name": "GRCh38",
+   "colocated_variants": [
+    {
+     "allele_string": "T/C/G",
+     "end": 30964618,
+     "frequencies": {
+      "C": {
+       "gnomade": 1.027e-05,
+       "gnomade_afr": 0,
+       "gnomade_amr": 0.0001566,
+       "gnomade_asj": 7.672e-05,
+       "gnomade_eas": 0,
+       "gnomade_fin": 0,
+       "gnomade_mid": 0,
+       "gnomade_nfe": 4.499e-06,
+       "gnomade_remaining": 1.657e-05,
+       "gnomade_sas": 0,
+       "gnomadg": 1.316e-05,
+       "gnomadg_afr": 0,
+       "gnomadg_ami": 0,
+       "gnomadg_amr": 0,
+       "gnomadg_asj": 0,
+       "gnomadg_eas": 0,
+       "gnomadg_fin": 0,
+       "gnomadg_mid": 0,
+       "gnomadg_nfe": 1.471e-05,
+       "gnomadg_remaining": 0.0004785,
+       "gnomadg_sas": 0
+      }
+     },
+     "id": "rs779488297",
+     "seq_region_name": "16",
+     "start": 30964618,
+     "strand": 1
+    }
+   ],
+   "end": 30964618,
+   "id": ".",
+   "input": "16 30964618 . T C . . .",
+   "most_severe_consequence": "synonymous_variant",
+   "seq_region_name": "16",
+   "start": 30964618,
+   "strand": 1,
+   "transcript_consequences": [
+    {
+     "amino_acids": "T",
+     "biotype": "protein_coding",
+     "canonical": 1,
+     "cdna_end": 1102,
+     "cdna_start": 1102,
+     "cds_end": 876,
+     "cds_start": 876,
+     "codons": "acT/acC",
+     "consequence_terms": [
+      "synonymous_variant"
+     ],
+     "gene_id": "ENSG00000099381",
+     "gene_symbol": "SETD1A",
+     "gene_symbol_source": "HGNC",
+     "hgnc_id": "HGNC:29010",
+     "hgvsc": "ENST00000262519.14:c.876T>C",
+     "hgvsp": "ENSP00000262519.8:p.Thr292=",
+     "impact": "LOW",
+     "mane": [
+      "MANE_Select"
+     ],
+     "mane_select": "NM_014712.3",
+     "protein_end": 292,
+     "protein_start": 292,
+     "spliceai": {
+      "DP_AG": -6,
+      "DP_AL": 16,
+      "DP_DG": 0,
+      "DP_DL": 23,
+      "DS_AG": 0,
+      "DS_AL": 0,
+      "DS_DG": 0,
+      "DS_DL": 0,
+      "SYMBOL": "SETD1A"
+     },
+     "strand": 1,
+     "transcript_id": "ENST00000262519",
+     "variant_allele": "C"
+    },
+    {
+     "biotype": "protein_coding",
+     "consequence_terms": [
+      "downstream_gene_variant"
+     ],
+     "distance": 295,
+     "flags": [
+      "cds_end_NF"
+     ],
+     "gene_id": "ENSG00000099381",
+     "gene_symbol": "SETD1A",
+     "gene_symbol_source": "HGNC",
+     "hgnc_id": "HGNC:29010",
+     "impact": "MODIFIER",
+     "spliceai": {
+      "DP_AG": -6,
+      "DP_AL": 16,
+      "DP_DG": 0,
+      "DP_DL": 23,
+      "DS_AG": 0,
+      "DS_AL": 0,
+      "DS_DG": 0,
+      "DS_DL": 0,
+      "SYMBOL": "SETD1A"
+     },
+     "strand": 1,
+     "transcript_id": "ENST00000682768",
+     "variant_allele": "C"
+    },
+    {
+     "amino_acids": "T",
+     "biotype": "protein_coding",
+     "cdna_end": 1055,
+     "cdna_start": 1055,
+     "cds_end": 876,
+     "cds_start": 876,
+     "codons": "acT/acC",
+     "consequence_terms": [
+      "synonymous_variant"
+     ],
+     "gene_id": "ENSG00000099381",
+     "gene_symbol": "SETD1A",
+     "gene_symbol_source": "HGNC",
+     "hgnc_id": "HGNC:29010",
+     "hgvsc": "ENST00000684162.2:c.876T>C",
+     "hgvsp": "ENSP00000507683.1:p.Thr292=",
+     "impact": "LOW",
+     "protein_end": 292,
+     "protein_start": 292,
+     "spliceai": {
+      "DP_AG": -6,
+      "DP_AL": 16,
+      "DP_DG": 0,
+      "DP_DL": 23,
+      "DS_AG": 0,
+      "DS_AL": 0,
+      "DS_DG": 0,
+      "DS_DL": 0,
+      "SYMBOL": "SETD1A"
+     },
+     "strand": 1,
+     "transcript_id": "ENST00000684162",
+     "variant_allele": "C"
+    }
+   ]
+  }
+ }
+}

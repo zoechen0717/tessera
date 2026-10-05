@@ -93,3 +93,22 @@ def test_one_ranked_row_per_allele(run_bundle):
     rows = (run_bundle / "ranked_variants.csv").read_text().splitlines()[1:]
     ids = [r.split(",")[6] for r in rows]
     assert len(ids) == len(set(ids))
+
+
+def test_reference_slice_uses_genomic_coordinates(tmp_path):
+    import yaml
+
+    from tessera.schemas.base import sha256_hex
+
+    fasta = ">16 slice\nACGTACGTAA\n"
+    (tmp_path / "r.fa").write_text(fasta)
+    (tmp_path / "m.yaml").write_text(yaml.safe_dump({
+        "bundle_id": "slice", "assembly": "GRCh38", "is_synthetic": False, "fasta": "r.fa",
+        "fasta_sha256": sha256_hex(fasta), "contigs": {"16": {"accession": "NC_000016.10", "start": 1001}}}))
+    ref = ReferenceBundle.load(tmp_path / "m.yaml")
+    assert ref.fetch("16", 1001, 4) == "ACGT" and ref.span("16") == (1001, 1010)
+    assert normalize(ref, "16", 1003, "G", "C").allele.pos_1based == 1003
+    assert normalize(ref, "16", 999, "A", "C").status is IdentityStatus.UNMAPPED
+    # a deletion in the trailing AA run left-aligns within the slice
+    r = normalize(ref, "16", 1009, "AA", "A")
+    assert (r.allele.pos_1based, r.allele.ref, r.allele.alt) == (1008, "TA", "T")

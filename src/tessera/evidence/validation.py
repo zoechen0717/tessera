@@ -115,8 +115,14 @@ def host_decision(
     snapshots: dict[str, SourceSnapshot],
     contents: dict[str, bytes],
     sequence: int,
+    out_of_scope: bool = False,
 ) -> ValidationDecision:
-    checks, reasons = mechanical_checks(link, claim, identity_decisions, snapshots, contents)
+    if out_of_scope:
+        # The allele resolved but lies outside the declared consequence scope:
+        # the claim is kept for audit, the link cannot contribute.
+        checks, reasons = {"scope": CheckResult.FAIL}, ["allele outside declared consequence scope"]
+    else:
+        checks, reasons = mechanical_checks(link, claim, identity_decisions, snapshots, contents)
     failed = any(v is CheckResult.FAIL for v in checks.values())
     return ValidationDecision(
         decision_id=f"vd_host_{link.link_id}_{claim.revision}",
