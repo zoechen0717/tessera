@@ -1,0 +1,92 @@
+# Scoring configuration (spec 38).
+#
+# TWO STRUCTURAL PROPERTIES THAT ARE NOT PLACEHOLDERS, whatever the weights
+# are retuned to:
+#
+#   1. Weights sum over FOUR components. Novelty is a multiplier (`novelty_alpha`),
+#      never a fifth weighted term. The rejected linear form reintroduced D and M
+#      a second time under a different name, which made the configured weights
+#      differ from the effective weights and left the sign of F's contribution
+#      undefined. See spec 19.5 and tests/test_invariants.py.
+#
+#   2. Every raw input mapped into a component is anchored in anchors.yaml, and
+#      no component uses candidate-set-dependent normalization (spec 19.6).
+#
+# The weight VALUES below are placeholders for implementation testing. They are
+# not biologically validated.
+
+version: "0.2"
+
+anchors: anchors.yaml
+mechanism_gating: mechanism_gating.yaml
+mechanism_branches: mechanism_branches.yaml
+saturation: saturation.yaml
+
+ranking_modes:
+
+  discovery:
+    weights:
+      disease:     0.32
+      functional:  0.16
+      mechanism:   0.34
+      editability: 0.18
+    novelty_alpha: 0.30
+
+  validation:
+    weights:
+      disease:     0.33
+      functional:  0.34
+      mechanism:   0.16
+      editability: 0.17
+    novelty_alpha: 0.00
+
+  balanced:
+    weights:
+      disease:     0.33
+      functional:  0.22
+      mechanism:   0.24
+      editability: 0.21
+    novelty_alpha: 0.15
+
+  panel:
+    inherits: balanced
+    composition:
+      discovery_fraction:  0.55
+      validation_fraction: 0.30
+      control_fraction:    0.15
+
+# Component sub-weights. D and F only: M branches by consequence class and lives
+# in mechanism_branches.yaml, E is derived from design-tool output.
+components:
+
+  disease:
+    fine_mapping:        0.30
+    clinical_evidence:   0.25
+    recurrence:          0.20
+    rarity:              0.15
+    segregation:         0.10
+
+  functional:
+    # F takes the MAX over evidence tiers rather than a sum, because three
+    # papers reporting the same assay are not three times the evidence
+    # (spec 19.2). Summation here is how paper-counting re-enters by the back
+    # door after being excluded from recurrence.
+    aggregation: max
+    replication_bonus: 0.15   # additive, applied after the max
+
+  editability:
+    predicted_efficiency: 0.45
+    design_count:         0.20
+    bystander:            0.12
+    off_target:           0.13
+    indel_length:         0.10
+
+validation:
+  require_weights_sum_to_one: true
+  require_anchor_for_every_raw_input: true
+  forbid_fields_in_scoring:
+    # spec 43.1 -- an LLM's self-rated certainty is not calibrated and its scale
+    # drifts across models and prompt versions. Enforced by source inspection in
+    # tests/test_invariants.py, not by code review.
+    - agent_extraction_confidence
+    - agent_confidence

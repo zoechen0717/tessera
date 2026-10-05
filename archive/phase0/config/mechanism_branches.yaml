@@ -1,0 +1,78 @@
+# M branches by consequence class (spec 19.3).
+#
+# A single formula cannot mix amino-acid-level and regulatory-level predictions:
+# the predictors have different output spaces, different calibrations, and
+# different coverage. Because the branches are computed from different inputs on
+# different scales, a globally pooled ranking across consequence classes is not
+# interpretable -- rank within class and fill the panel by quota (spec 20.5).
+
+version: "0.1"
+
+branches:
+
+  missense:
+    alphamissense_score:          0.40
+    esm1b_llr:                    0.20
+    protein_domain_context:       0.20
+    regional_missense_constraint: 0.10
+    avi_regulatory_shap:          0.10
+    # NOT raw alphagenome_avi. AVI is a supervised model that takes AlphaMissense
+    # as an input feature, so raw AVI beside alphamissense_score would count
+    # AlphaMissense twice. avi_regulatory_shap is the SHAP-isolated
+    # AlphaGenome-modality part -- the increment AVI carries that AlphaMissense
+    # does not, which for a missense variant is chiefly exon-edge splice
+    # disruption. See spec 9.5.1 and config/anchors.yaml.
+
+  # Same reasoning applies to any branch that combines AVI with one of AVI's own
+  # input features: AlphaMissense, VEP protein-termination annotations, or
+  # conservation (PhastCons 470-way, Zoonomia Cactus 241-way).
+
+  splice:
+    spliceai_max_delta:           0.50
+    avi_regulatory_shap:          0.25
+    distance_to_nearest_junction: 0.15
+    protein_domain_context:       0.10
+    # avi_regulatory_shap rather than raw AVI: a canonical splice variant is often
+    # also a protein-termination variant, which is an AVI input feature.
+
+  ptv:
+    # PTVs are near-saturating on predicted mechanism by construction, so
+    # discrimination comes from POSITION, not from a pathogenicity predictor.
+    position_in_transcript:       0.40
+    nmd_predicted:                0.40
+    protein_domain_context:       0.20
+
+  synonymous:
+    # Splice and codon effects only. A synonymous variant scored with a missense
+    # predictor is a category error.
+    spliceai_max_delta:           0.55
+    distance_to_nearest_junction: 0.25
+    conservation_phylop:          0.20
+    # conservation_phylop is safe here because this branch carries no AVI term.
+
+  inframe_indel:
+    protein_domain_context:       0.40
+    conservation_phylop:          0.25
+    regional_missense_constraint: 0.20
+    indel_length:                 0.15
+
+  noncoding:
+    # Raw AVI is correct HERE and only here: for a noncoding variant AlphaMissense
+    # is undefined, so AVI's coding features contribute nothing and there is
+    # nothing to double-count. This is the branch AVI was actually built for.
+    alphagenome_avi:                  0.45
+    alphagenome_modality_relevance:   0.30
+    distance_to_nearest_junction:     0.15
+    conservation_phylop:              0.10
+    # conservation_phylop is down-weighted from 0.20: AVI already contains
+    # PhastCons 470-way and Zoonomia Cactus 241-way as input features, so this
+    # term is partially redundant with the AVI term above. Kept at a low weight
+    # because phyloP is a different statistic, not removed.
+
+  other:
+    conservation_phylop:          0.50
+    alphagenome_avi:              0.50
+    # Partially redundant (AVI contains conservation features), but this is the
+    # catch-all branch for unclassified consequences where neither term is clearly
+    # more appropriate. Any variant landing here should prompt a look at whether
+    # it needs its own branch.

@@ -1,0 +1,38 @@
+# Ranking profile nomination_v0.1 (SPEC §8). PROVISIONAL: every choice below is a
+# proposed policy awaiting scientific review (SCI-09..SCI-13), not a validated fact.
+policy_id: nomination_v0.1
+status: provisional
+
+# Lexicographic key order within (channel, stratum). SCI-09.
+key_order: [K, O, P]
+
+# DEC-02: alleles with an accepted exact-allele functional experiment.
+characterized_policy: route_to_control   # or keep_in_discovery
+
+# Roles that place an allele in the control channel regardless of evidence.
+control_roles: [positive_control, negative_control, comparison]
+
+# Consequence -> stratum. Rules are tried in order; the first rule with a term
+# present in the selected transcript's consequences wins. splice_region-type
+# terms come after missense so a missense allele near a splice site is judged
+# by the missense predictor.
+stratum_rules:
+  - {stratum: ptv,           terms: [stop_gained, frameshift_variant]}
+  - {stratum: splice,        terms: [splice_acceptor_variant, splice_donor_variant, splice_donor_5th_base_variant]}
+  - {stratum: inframe_indel, terms: [inframe_insertion, inframe_deletion]}
+  - {stratum: missense,      terms: [missense_variant]}
+  - {stratum: splice,        terms: [splice_region_variant, splice_donor_region_variant, splice_polypyrimidine_tract_variant]}
+  - {stratum: synonymous,    terms: [synonymous_variant]}
+default_stratum: other
+
+# One predictor per stratum (DEC-06, SCI-10). null = no P key in this stratum.
+# Never list AVI here together with AlphaMissense (DEC-12).
+predictors:
+  missense: alphamissense
+  splice: splice_delta
+  synonymous: splice_delta
+  inframe_indel: null
+  ptv: null
+  other: null
+
+concordance_table: mechanism_concordance_v0.1.yaml

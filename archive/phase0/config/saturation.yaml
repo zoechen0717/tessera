@@ -1,0 +1,39 @@
+# Functional-evidence saturation (spec 19.5).
+#
+# Feeds the novelty multiplier:  S = (weighted_sum) * (1 + alpha * (1 - saturation))
+#
+# CRITICAL: saturation is defined on evidence EXISTENCE AND DIRECTNESS, not on
+# the value of F. That is what makes "this variant was tested and the effect was
+# null" distinguishable from "this variant has never been tested". A variant with
+# strong direct evidence of NO effect has high saturation and low F, and must not
+# be re-promoted as a novelty candidate -- which is exactly what `1 - F` would do.
+#
+# Only evidence that PASSED the deterministic critic counts (spec 14.1).
+
+version: "0.1"
+
+levels:
+  variant_direct_relevant_cell_replicated: 1.00
+  variant_direct_relevant_cell_single:     0.70
+  mave_score_available:                    0.60
+  variant_direct_other_model:              0.45
+  variant_direct_biochemical_only:         0.35
+  variant_association_only:                0.15
+  none:                                    0.00
+
+# Missingness interaction (spec 42.1). Only searched_not_found may lower
+# saturation -- it is the only absent state that is evidence about the variant
+# rather than about the run.
+missingness:
+  searched_not_found:
+    saturation: 0.00
+    may_claim_understudied: true
+  not_searched:
+    saturation: null          # unknown, not zero
+    may_claim_understudied: false
+    flag: incomplete_evidence
+  failed_retrieval:
+    saturation: null
+    may_claim_understudied: false
+    flag: retrieval_failure
+    blocks_panel: true

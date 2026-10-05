@@ -1,0 +1,35 @@
+# Mechanism x variant class -> concordance (DEC-03, DEC-14). PROVISIONAL.
+#
+# stratum_level: is this variant CLASS expected to perturb the gene in the
+#   disease-relevant direction? Constant within a stratum, so it informs panel
+#   quotas and the report, never the within-stratum order.
+# subclass: within-stratum K, through one declared annotation feature.
+#   `missing` applies when the feature is not present for an allele.
+table_id: mechanism_concordance_v0.1
+status: provisional
+
+stratum_level:
+  loss_of_function:  {ptv: concordant, splice: concordant, missense: partial,    inframe_indel: partial,    synonymous: discordant, other: not_assessable}
+  gain_of_function:  {ptv: discordant, splice: discordant, missense: concordant, inframe_indel: partial,    synonymous: discordant, other: not_assessable}
+  dominant_negative: {ptv: partial,    splice: partial,    missense: concordant, inframe_indel: concordant, synonymous: discordant, other: not_assessable}
+  mixed:             {ptv: partial,    splice: partial,    missense: partial,    inframe_indel: partial,    synonymous: discordant, other: not_assessable}
+  unknown:           {ptv: not_assessable, splice: not_assessable, missense: not_assessable, inframe_indel: not_assessable, synonymous: not_assessable, other: not_assessable}
+
+subclass:
+  loss_of_function:
+    # NMD-triggering truncations remove the protein; escaping ones may not.
+    ptv:           {feature: nmd, values: {triggers: concordant, escapes: partial}, missing: not_assessable}
+    missense:      {feature: in_functional_domain, values: {"true": concordant, "false": partial}, missing: not_assessable}
+    inframe_indel: {feature: in_functional_domain, values: {"true": concordant, "false": partial}, missing: not_assessable}
+  gain_of_function:
+    # A truncated product that escapes NMD can retain or gain activity.
+    ptv:           {feature: nmd, values: {triggers: discordant, escapes: partial}, missing: not_assessable}
+    missense:      {feature: in_functional_domain, values: {"true": concordant, "false": partial}, missing: not_assessable}
+    inframe_indel: {feature: in_functional_domain, values: {"true": concordant, "false": partial}, missing: not_assessable}
+  dominant_negative:
+    # A stable truncated product is what can interfere with the wild-type allele.
+    ptv:           {feature: nmd, values: {triggers: discordant, escapes: concordant}, missing: not_assessable}
+    missense:      {feature: in_functional_domain, values: {"true": concordant, "false": partial}, missing: not_assessable}
+    inframe_indel: {feature: in_functional_domain, values: {"true": concordant, "false": partial}, missing: not_assessable}
+  mixed: {}
+  unknown: {}

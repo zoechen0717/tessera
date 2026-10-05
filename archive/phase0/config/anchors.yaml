@@ -1,0 +1,396 @@
+# Absolute anchored scales (spec 19.6).
+#
+# RULES
+#   1. Every raw input consumed by any score component has an entry here.
+#   2. A missing entry raises MissingAnchorError at config load. It never defaults.
+#   3. No mapping may depend on the candidate set. There is no min-max, no
+#      z-score, no quantile, no rank normalization anywhere in this file, because
+#      those make one variant's score a function of which other variants happen
+#      to be in the run (Guarantee 9).
+#   4. Anchors are chosen once, with a written rationale in `note`, and are not
+#      tuned per run. Changing one is a scoring-version bump that triggers the
+#      full regression suite.
+#
+# These values are placeholders for implementation testing. The STRUCTURE is not
+# a placeholder: absolute, declared, and versioned.
+
+version: "0.1"
+
+anchors:
+
+  # ---------------------------------------------------------------- disease (D)
+
+  clinvar_review_stars:
+    type: categorical
+    note: >
+      Multiple weak submissions are not automatically stronger than an
+      expert-panel review, so this is anchored on review status rather than on
+      submission count. 0-star is floored at 0.10 rather than 0.0 because a
+      no-assertion record is still a record.
+    map: {"4": 1.00, "3": 0.90, "2": 0.60, "1": 0.30, "0": 0.10}
+
+  clinvar_classification:
+    type: categorical
+    note: >
+      Conflicting sits just below VUS: a conflict is informative about the
+      variant being contested, which is not the same as being uncertain.
+    map:
+      pathogenic: 1.00
+      likely_pathogenic: 0.80
+      pathogenic_low_penetrance: 0.65
+      vus: 0.40
+      conflicting_classifications_of_pathogenicity: 0.35
+      conflicting: 0.35
+      likely_benign: 0.10
+      benign: 0.00
+      not_provided: 0.10
+      no_classification_provided: 0.10
+
+  disease_match_type:
+    type: categorical
+    note: >
+      The multiplier applied to any disease evidence whose source condition is
+      not the query disease. `unrelated` is 0.0: such evidence is real, but it is
+      not evidence for this disease and must not enter D at all.
+    map:
+      exact: 1.00
+      narrower: 0.85
+      broader: 0.45
+      related: 0.30
+      unrelated: 0.00
+
+  gwas_pip:
+    type: identity
+    note: Posterior inclusion probability is already a probability on [0,1].
+
+  gwas_log10_p:
+    type: piecewise
+    note: >
+      Anchored on -log10(p) with 7.3 (genome-wide significance) at 0.60 rather
+      than at the top, so that a genome-wide-significant hit is not treated as
+      maximal evidence when fine-mapping evidence is available.
+    breakpoints: [0, 3, 5, 7.3, 10, 20, 50]
+    values:      [0.0, 0.10, 0.30, 0.60, 0.75, 0.90, 1.00]
+
+  cohort_normalized_recurrence:
+    type: piecewise
+    note: >
+      Input is observed_probands / expected_probands_under_null -- an enrichment
+      ratio, NOT a count. Raw counts of probands, reports, papers, or database
+      submissions are prohibited as ranking inputs (spec 19.1.1): uncorrected,
+      they rank long and well-studied genes above well-supported ones.
+      1.0 = at chance expectation, so it anchors near the floor.
+    breakpoints: [0, 1, 2, 5, 10, 25, 100]
+    values:      [0.0, 0.05, 0.25, 0.50, 0.70, 0.88, 1.00]
+
+  segregation_support:
+    type: categorical
+    map:
+      de_novo_confirmed: 1.00
+      de_novo_unconfirmed: 0.70
+      segregates_in_family: 0.75
+      case_control_only: 0.45
+      single_case_report: 0.25
+      none: 0.00
+
+  # ------------------------------------------------------------ frequency (D/M)
+
+  gnomad_af:
+    type: piecewise
+    log_scale: true
+    invert: true
+    note: >
+      Rarity, not frequency: inverted so that rare = high. Interpolated in log
+      space because allele frequency spans orders of magnitude and a linear
+      interpolation between 1e-6 and 1e-2 would make everything below 1e-3
+      indistinguishable. AF=0 clamps to the first breakpoint, i.e. maximal rarity.
+    breakpoints: [1.0e-6, 1.0e-5, 1.0e-4, 1.0e-3, 1.0e-2, 1.0e-1]
+    values:      [0.00,   0.05,   0.15,   0.40,   0.75,   0.95]
+
+  gnomad_homozygote_count:
+    type: piecewise
+    invert: true
+    note: >
+      Healthy homozygotes argue against a severe dominant mechanism. Kept
+      separate from AF because a variant can be rare overall and still have
+      observed homozygotes in one population.
+    breakpoints: [0, 1, 5, 20]
+    values:      [0.0, 0.4, 0.7, 1.0]
+
+  # -------------------------------------------------------------- mechanism (M)
+
+  alphamissense_score:
+    type: identity
+    note: >
+      Already calibrated on [0,1]. label_leakage = none for ClinVar-based
+      evaluation (not trained on ClinVar classifications), but only weakly
+      independent of a DMS answer key (spec 47.3).
+
+  alphamissense_class:
+    type: categorical
+    map: {pathogenic: 1.00, ambiguous: 0.50, benign: 0.00}
+
+  esm1b_llr:
+    type: piecewise
+    note: >
+      Log-likelihood ratio, negative = deleterious. Unsupervised, so
+      label_leakage = none against both ClinVar and DMS keys.
+    breakpoints: [-25, -15, -10, -7.5, -5, -2, 0]
+    values:      [1.00, 0.90, 0.75, 0.55, 0.35, 0.10, 0.0]
+
+  cadd_phred:
+    type: piecewise
+    note: >
+      label_leakage = clinvar/hgmd -- CADD is supervised on curated pathogenic
+      sets. Retained as a feature but MUST NOT be used in any evaluation whose
+      answer key derives from ClinVar (spec 48.10).
+    breakpoints: [0, 10, 15, 20, 25, 30, 40]
+    values:      [0.0, 0.15, 0.30, 0.50, 0.70, 0.85, 1.00]
+
+  revel_score:
+    type: identity
+    note: label_leakage = clinvar. Same evaluation restriction as CADD.
+
+  mpc_score:
+    type: piecewise
+    breakpoints: [0, 1, 2, 3, 5]
+    values:      [0.0, 0.30, 0.65, 0.85, 1.00]
+
+  regional_missense_constraint:
+    type: piecewise
+    invert: true
+    note: >
+      Input is the regional missense observed/expected ratio. Inverted: low O/E
+      means the region is depleted of missense variation in the population and is
+      therefore more likely to be functionally important.
+    breakpoints: [0.2, 0.4, 0.6, 0.8, 1.0]
+    values:      [0.0, 0.2, 0.45, 0.75, 1.00]
+
+  spliceai_max_delta:
+    type: identity
+    note: >
+      Max of the four delta scores, already on [0,1]. Field convention treats
+      0.2 as permissive, 0.5 as moderate, 0.8 as high confidence; that judgement
+      lives in the report text, not in a re-binning here.
+
+  pangolin_score:
+    type: identity
+
+  distance_to_nearest_junction:
+    type: piecewise
+    invert: true
+    note: Base pairs. Proximity to a junction raises splice-disruption prior.
+    breakpoints: [0, 2, 6, 20, 50, 200]
+    values:      [0.0, 0.1, 0.3, 0.6, 0.85, 1.00]
+
+  alphagenome_avi:
+    type: piecewise
+    note: >
+      AVI_PHRED. Range 0 to approximately 80 (NOT [0,1] -- an earlier version of
+      this file anchored it as `identity`, which silently truncated every real
+      value to 1.0). Calibrated against the scale's own definition, confirmed from
+      the Ensembl VEP AVI plugin: "a phred of 20 means the variant is among the
+      top 1% most deleterious substitutions genome-wide".
+
+      Anchored so that 20 (top 1%) sits at 0.75 rather than at the top, because
+      the distribution has a long tail to ~80 and saturating at 20 would make every
+      strongly deleterious variant indistinguishable.
+
+      SOURCE FILE: tabix-indexed bgzip TSV, 6 columns
+        chr  start  ref  alt  raw  phred
+      SNV ONLY -- see coverage note in schemas/annotations.py. Indels are not in
+      the bulk download at all, so this anchor is never reached for an indel.
+
+      IMPORTANT (spec 9.5.1): AVI is NOT a pure AlphaGenome regulatory score. It is
+      a supervised 18-feature model whose inputs include AlphaMissense, three VEP
+      protein-termination features, and two conservation features. Using raw
+      alphagenome_avi in the same branch as alphamissense_score double-counts
+      AlphaMissense. Coding branches use avi_regulatory_shap instead.
+    breakpoints: [0, 5, 10, 15, 20, 30, 50, 80]
+    values:      [0.0, 0.08, 0.22, 0.45, 0.75, 0.90, 0.97, 1.00]
+
+  avi_raw:
+    type: piecewise
+    note: >
+      AVI_RAW, the pre-PHRED score. Range approximately -1.3 to +4.0 (confirmed
+      from the VEP plugin's own documentation of the field). Stored for audit and
+      for reconstructing SHAP sums; the PHRED form is what the branches use,
+      because it is the quantile-calibrated one.
+    breakpoints: [-1.3, 0.0, 0.5, 1.0, 2.0, 4.0]
+    values:      [0.0,  0.10, 0.30, 0.55, 0.85, 1.00]
+
+  avi_regulatory_shap:
+    type: piecewise
+    note: >
+      The regulatory/splicing part of AVI, isolated from its coding part.
+
+      The Atlas ships per-variant SHAP attributions whose 18 contributions sum
+      additively to the RAW AVI score, so the AlphaGenome-modality contributions
+      (splicing, ATAC, DNase, ChIP-TF, ChIP-histone, CAGE, PRO-cap, RNA-seq,
+      polyadenylation, contact maps) can be summed separately from the
+      AlphaMissense and protein-termination contributions. That is what makes it
+      legitimate to use alongside alphamissense_score: it is the increment AVI
+      carries that AlphaMissense does not.
+
+      Since the contributions sum to raw AVI, they live on the raw scale
+      (approx -1.3 to +4.0) and are signed; negative contributions floor at 0.
+
+      SOURCE FILE: "AVI SNV feature importance scores", tabix, ~284 GB. Its exact
+      per-feature column names must be confirmed against the release before this
+      anchor is treated as calibrated -- the breakpoints below are shaped by the
+      raw-score range, not yet by the measured distribution of this subset.
+    breakpoints: [-1.3, 0.0, 0.4, 0.8, 1.6, 3.0]
+    values:      [0.0,  0.0, 0.25, 0.50, 0.80, 1.00]
+
+  alphagenome_modality_relevance:
+    type: identity
+    note: >
+      How well the strongest-responding modality and context match the screen's
+      cell type. An AVI signal in an irrelevant tissue is weak evidence for a
+      neuronal screen.
+
+  conservation_phylop:
+    type: piecewise
+    breakpoints: [-3, 0, 2, 4, 7, 10]
+    values:      [0.0, 0.10, 0.35, 0.60, 0.85, 1.00]
+
+  protein_domain_context:
+    type: categorical
+    note: >
+      Structural and positional context. Deliberately coarse: spec 9.6 says
+      structural information is annotation-level evidence until validated, so it
+      should not be finely weighted before there is anything to calibrate against.
+    map:
+      active_site: 1.00
+      binding_site: 0.90
+      catalytic_domain: 0.85
+      annotated_domain: 0.70
+      conserved_motif: 0.65
+      linker: 0.35
+      disordered_region: 0.20
+      outside_annotated_feature: 0.15
+
+  nmd_predicted:
+    type: boolean
+    note: >
+      For PTVs, escaping NMD changes the mechanism (possible truncated protein
+      rather than a null), so it is informative in both directions and is not a
+      simple 1/0 on severity.
+    map: {"true": 1.00, "false": 0.45}
+
+  position_in_transcript:
+    type: piecewise
+    invert: true
+    note: >
+      Fraction along the CDS. A PTV in the final 5% frequently escapes NMD and is
+      a weaker null allele, so late positions anchor low.
+    breakpoints: [0.0, 0.5, 0.85, 0.95, 1.0]
+    values:      [1.00, 1.00, 0.85, 0.40, 0.20]
+
+  gnomad_loeuf:
+    type: piecewise
+    invert: true
+    note: Gene-level constraint. Low LOEUF = intolerant of loss of function.
+    breakpoints: [0.0, 0.3, 0.6, 1.0, 2.0]
+    values:      [0.0, 0.10, 0.40, 0.75, 1.00]
+
+  gnomad_pli:
+    type: identity
+
+  clingen_haploinsufficiency_score:
+    type: categorical
+    note: ClinGen dosage sensitivity. Feeds the mechanism prior (spec 9.8).
+    map: {"3": 1.00, "2": 0.70, "1": 0.40, "0": 0.10, "30": 0.00}
+
+  # ------------------------------------------------------------ functional (F)
+
+  mave_functional_class:
+    type: categorical
+    note: >
+      A MaveDB measurement of the exact variant is variant_direct evidence and
+      routes into F, not M -- it is a measurement, not a prediction (spec 9.6b).
+    map: {lof: 1.00, intermediate: 0.60, wt_like: 0.05, gof: 0.85}
+
+  mave_score_normalized:
+    type: identity
+    note: >
+      Normalized against the synonymous/WT distribution of the same score set.
+      Never compare raw scores across score sets.
+
+  evidence_directness:
+    type: categorical
+    note: >
+      Spec 39: weighted by directness and model-system relevance, not by journal
+      prestige or citation count. This is the dominant term in F.
+    map:
+      variant_direct_relevant_human_cell: 1.00
+      variant_direct_human_other_cell: 0.85
+      variant_direct_animal: 0.70
+      variant_direct_biochemical: 0.70
+      variant_association_patient: 0.60
+      gene_level_relevant_cell: 0.35
+      gene_level_other_model: 0.20
+      computational_only: 0.10
+
+  model_system_relevance:
+    type: categorical
+    note: >
+      Applied as a multiplier on directness. A yeast complementation assay is
+      fully variant_direct in directness yet weak in relevance to a human
+      neuronal phenotype; the two axes must not be conflated.
+    map:
+      exact_cell_type: 1.00
+      related_human_neuronal: 0.85
+      other_human_cell: 0.60
+      mouse_neuronal: 0.55
+      other_animal: 0.35
+      non_neuronal_heterologous: 0.25
+      in_vitro_biochemical: 0.30
+
+  replication_count:
+    type: piecewise
+    note: >
+      Independent replications, counted on primary_observation_key after
+      deduplication (spec 12.4) -- NOT a count of papers. A review restating a
+      primary study is not a replication.
+    breakpoints: [0, 1, 2, 4]
+    values:      [0.0, 0.60, 0.85, 1.00]
+
+  # ----------------------------------------------------------- editability (E)
+
+  pegrna_predicted_efficiency:
+    type: identity
+    note: >
+      Output of the named design tool (spec 17.1.1). This anchor is only valid
+      for the tool and version recorded in the run manifest, because it maps THAT
+      tool's output distribution; swapping tools requires re-anchoring.
+
+  pegrna_design_count:
+    type: piecewise
+    note: Number of viable designs -- redundancy against any single design failing.
+    breakpoints: [0, 1, 3, 6]
+    values:      [0.0, 0.45, 0.80, 1.00]
+
+  bystander_risk:
+    type: identity
+    invert: true
+
+  off_target_risk:
+    type: identity
+    invert: true
+
+  indel_length:
+    type: piecewise
+    invert: true
+    note: Longer edits are less efficient in prime editing.
+    breakpoints: [0, 1, 3, 10, 30]
+    values:      [0.0, 0.10, 0.35, 0.70, 1.00]
+
+  host_line_ref_allele_confirmed:
+    type: boolean
+    note: >
+      A hard filter lives in VariantStatus (spec 17.1.2); this anchor exists only
+      so the confirmation state is visible in the E breakdown. `false` here means
+      unconfirmed, not conflicting -- a genuine conflict removes the variant from
+      panel selection entirely rather than penalizing it.
+    map: {"true": 1.00, "false": 0.50}

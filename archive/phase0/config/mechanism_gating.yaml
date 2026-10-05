@@ -1,0 +1,59 @@
+# Mechanism-of-disease gating (spec 9.8).
+#
+# The mechanism by which a gene causes disease determines which variant classes
+# are worth screening. For a haploinsufficient gene the interesting missense
+# alleles are those predicted to MIMIC loss of function; predicted
+# gain-of-function alleles are low priority. For a gain-of-function gene the
+# ordering inverts. Applying one mechanism-agnostic missense score across genes
+# with different mechanisms produces rankings that are wrong in a way no amount
+# of evidence curation fixes.
+#
+# Multipliers apply to the mechanism component M and are recorded per variant as
+# `mechanism_gate_applied`, so the gate is always visible in the output.
+
+version: "0.1"
+
+gating:
+
+  haploinsufficiency:
+    ptv: 1.00
+    splice_lof: 1.00
+    missense_predicted_lof: 0.85
+    missense_predicted_tolerated: 0.20
+    missense_predicted_gof: 0.15
+    inframe_indel: 0.70
+    synonymous: 0.15
+    noncoding_reduces_expression: 0.80
+    noncoding_other: 0.30
+
+  gain_of_function:
+    ptv: 0.20
+    splice_lof: 0.20
+    missense_in_functional_site: 1.00
+    missense_predicted_gof: 1.00
+    missense_predicted_lof: 0.25
+    missense_destabilizing: 0.30
+    missense_predicted_tolerated: 0.15
+    inframe_indel: 0.50
+    synonymous: 0.10
+    noncoding_increases_expression: 0.85
+    noncoding_other: 0.25
+
+  dominant_negative:
+    ptv: 0.35
+    missense_in_interaction_interface: 1.00
+    missense_predicted_lof: 0.55
+    missense_in_functional_site: 0.80
+    missense_predicted_tolerated: 0.15
+    inframe_indel: 0.75
+    synonymous: 0.10
+    noncoding_other: 0.20
+
+  mixed:
+    # Both directions plausible: do not gate, but say so in the report.
+    default: 0.90
+
+  unknown:
+    # No gating. The fact that mechanism is unknown is surfaced in the report
+    # rather than compensated for by a guess.
+    default: 1.00
