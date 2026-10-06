@@ -1,0 +1,49 @@
+# LLM providers for tessera research workers (M1b). User-editable.
+#
+# api_format:
+#   openai_compatible  POST {base_url}/chat/completions (proxies, OpenAI-style gateways)
+#   anthropic          Anthropic Messages API via the official `anthropic` SDK
+#
+# Secrets are never written here: each profile names the ENVIRONMENT VARIABLE
+# that holds its key (tessera also reads a git-ignored .env in the repo root).
+# The model identifier the provider RETURNS is recorded in every model output;
+# a mismatch with the requested model is flagged, not hidden (R-17).
+
+default_profile: gemini_31_pro_proxy
+
+# Gateway pricing checked 2026-10-05 via /api/pricing: several routes bill PER CALL,
+# not per token ([AWS]claude-opus-4-8 = $0.80/call; [1000k按次计费]gemini-3.1-pro-preview
+# = $0.05/call; gemini flash = $0.03/call). For per-call routes, pack more items per call.
+
+profiles:
+  gemini_31_pro_proxy:           # $0.05 per call on the gateway, 1M context
+    api_format: openai_compatible
+    base_url_env: TESSERA_LLM_BASE_URL
+    api_key_env: TESSERA_LLM_API_KEY
+    model: "[1000k按次计费]gemini-3.1-pro-preview"
+    max_tokens: 16000
+    timeout_s: 300
+
+  claude_aws_proxy:              # $0.80 PER CALL on the gateway; returns anthropic.claude-opus-4-8, ~3 s
+    api_format: openai_compatible
+    base_url_env: TESSERA_LLM_BASE_URL
+    api_key_env: TESSERA_LLM_API_KEY
+    model: "[AWS]claude-opus-4-8"
+    max_tokens: 8000
+    timeout_s: 180
+
+  claude_opus_5_5_proxy:         # proxy route labelled reverse-engineered, possibly 8k context; ~50 s
+    api_format: openai_compatible
+    base_url_env: TESSERA_LLM_BASE_URL
+    api_key_env: TESSERA_LLM_API_KEY
+    model: "[k-逆向按次-8k]claude-opus-5-5"
+    max_tokens: 4000
+    timeout_s: 300
+
+  anthropic_direct:              # needs ANTHROPIC_API_KEY and `pip install anthropic`
+    api_format: anthropic
+    api_key_env: ANTHROPIC_API_KEY
+    model: claude-opus-5-5
+    max_tokens: 16000
+    effort: high
+    timeout_s: 600

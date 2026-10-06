@@ -8,6 +8,9 @@ flank: 2000                      # bp around the gene in the reference slice
 routes:
   clinvar: true                  # all gene-level ClinVar records, disease-matched or not
   schema_browser: true           # SCHEMA alleles seen in >=1 case
+  litvar: true                   # LitVar2 literature variants, resolved with Ensembl variant_recoder
+  literature_deep_read: true     # supplement hits + LLM-extracted claims from `screen` + `deepread`
+literature_dir: ../runs/setd1a/literature
 manual_variants: []              # e.g. the existing scPRIME panel for a recall check
 
 # SCHEMA is a schizophrenia case-control exome study, so its cases match the
@@ -48,3 +51,28 @@ screen_context:
 
 policy: ../config/nomination_v0.1.yaml
 requested_panel_size: null
+
+# M1b literature screening (DEC-22). Terms are the query template; PROVISIONAL.
+literature:
+  disease_terms: [schizophrenia, psychosis, neurodevelopmental, "developmental delay", "intellectual disability", epilepsy, autism]
+  variant_terms: [variant, variants, mutation, mutations, frameshift, "loss-of-function", "de novo", missense, nonsense]
+  gene_aliases: ["SETD 1A", KMT2F, SET1A, KIAA0339]
+  pubtator_diseases: [Schizophrenia, Neurodevelopmental_Disorders, Intellectual_Disability, Epilepsy, Autism_Spectrum_Disorder]
+  screening:
+    llm_profile: gemini_31_pro_proxy     # per-call billing: pack many abstracts per call
+    batch_size: 40
+    max_tokens: 16000              # ~160 output tokens per abstract observed
+    concurrency: 2
+    max_llm_requests: 150
+    max_input_tokens: 1500000
+    max_output_tokens: 300000
+    audit_fraction: 0.1
+    audit_seed: 42
+  deep_read:
+    llm_profile: gemini_31_pro_proxy
+    max_units_per_paper: 15
+    max_chars_per_paper: 9000
+    max_chars_per_call: 45000      # several papers per call (per-call billing)
+    max_llm_requests: 20
+    concurrency: 2
+    download_timeout_s: 600        # some supplement archives are tens of MB

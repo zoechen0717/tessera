@@ -65,6 +65,10 @@ def _read_variants_tsv(path: Path, route: str) -> list[VariantMention]:
                     reported_ref=opt("ref"),
                     reported_alt=opt("alt"),
                     roles=[r for r in (opt("roles") or "").split(",") if r],
+                    resolution_method=opt("resolution_method"),
+                    resolution_status=opt("resolution_status"),
+                    resolution_note=opt("resolution_note"),
+                    source_refs=[x for x in (opt("source_refs") or "").split(";") if x],
                 )
             )
     return out
@@ -294,9 +298,33 @@ def derive(bundle_dir: Path, out: Path, *, mode: str) -> Derived:
     coords = {v.variant_id: v.vcf_key for v in variants}
     ranked, strata = rank(features, coords, policy, mechanism)
 
+    # provenance per allele: discovery routes, source references, accepted literature evidence
+    decided = {d["mention_id"]: d for d in map(json.loads, (bundle_dir / "identity_decisions.jsonl").read_text().splitlines()) if d}
+    prov: dict[str, dict] = defaultdict(lambda: {"routes": set(), "refs": set(), "lit": set()})
+    for m in map(json.loads, (bundle_dir / "candidate_mentions.jsonl").read_text().splitlines()):
+        d = decided.get(m["mention_id"])
+        if d and d["status"] == "resolved":
+            p = prov[d["variant_ids"][0]]
+            p["routes"].add(m["discovery_route"])
+            p["refs"].update(m.get("source_refs") or [])
+    for e in accepted:
+        c = e.claim
+        if c.publication_group_id and c.publication_group_id.startswith("PMID:"):
+            a = c.functional_assay
+            detail = f"{a.perturbation_type.value}/{a.outcome_type.value}" if a else c.evidence_kind.value
+            prov[e.link.variant_id]["lit"].add(f"{c.publication_group_id} {c.evidence_kind.value}:{detail}")
+    provenance = {v: {"routes": sorted(p["routes"]), "refs": sorted(p["refs"]), "lit": sorted(p["lit"])}
+                  for v, p in prov.items()}
+    for vid, a in annotations.items():
+        eff = a.selected_effect()
+        if eff:
+            provenance.setdefault(vid, {"routes": [], "refs": [], "lit": []})
+            provenance[vid]["hgvs_c"] = (eff.hgvs_c or "").split(":")[-1]
+            provenance[vid]["hgvs_p"] = (eff.hgvs_p or "").split(":")[-1]
+
     B.write_jsonl(out / "features.jsonl", features)
     feat_by_id = {f.variant_id: f for f in features}
-    (out / "ranked_variants.csv").write_text(render_csv(ranked, feat_by_id), encoding="utf-8")
+    (out / "ranked_variants.csv").write_text(render_csv(ranked, feat_by_id, provenance), encoding="utf-8")
     B.write_json(out / "strata_report.json", [s.model_dump(mode="json") for s in strata])
     scope = B.read_json(bundle_dir / "resolved_scope.json")
     source_failures = (yaml.safe_load((bundle_dir / "input.yaml").read_text()).get("provenance") or {}).get(
@@ -319,6 +347,7 @@ def derive(bundle_dir: Path, out: Path, *, mode: str) -> Derived:
         link_states={k: v.value for k, v in sorted(states.items())},
         obs_search=obs_search,
         source_failures=source_failures,
+        provenance=provenance,
     )
     (out / "report.md").write_text(report, encoding="utf-8")
 

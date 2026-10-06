@@ -34,7 +34,8 @@ Worker roles may use the same provider and one process. LangGraph or another orc
 | DISCOVER_INITIAL | Manual + ClinVar + gene literature → mentions | Record source failures and truncation |
 | NORMALIZE | Mentions → canonical variants/aliases/exclusions | REF/assembly/transcript gates |
 | ANNOTATE | Canonical variants → source annotations | Per-source result status; no required all-source success |
-| PLAN_RESEARCH | Coverage + candidates → task queue | Deterministic allocation and recorded eligibility |
+| SCREEN_DOCUMENTS | Document pool (Europe PMC ∪ LitVar2 ∪ PubTator3) → rules + abstract-only LLM triage → documents.csv | Host-verified quotes; priority by declared rule; audit sample; scientist review (DEC-22) |
+| PLAN_RESEARCH | Coverage + candidates + screened documents → task queue | Deterministic allocation and recorded eligibility |
 | RESEARCH | Scoped tasks → documents/draft claims/datasets/new mentions | Host budgets and tool permissions |
 | EXPAND | New mentions → normalization and annotation | At most configured expansion rounds, M1 default one |
 | CLOSE_CANDIDATES | Registry → frozen candidate snapshot | Late mentions deferred, no invisible truncation |

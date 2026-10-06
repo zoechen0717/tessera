@@ -79,3 +79,41 @@ def test_gnomad_filtered_calls_are_not_frequencies():
     af, why = population.gnomad_af(clean)
     total_an = clean["exome"]["an"] + clean["genome"]["an"]
     assert why is None and af == pytest.approx((clean["exome"]["ac"] + clean["genome"]["ac"]) / total_an)
+
+
+# --- literature route: inputs are verbatim LitVar2 lines / recoder records seen 2026-10-05
+
+from tessera.sources import literature  # noqa: E402
+
+
+def test_litvar_names_and_recoder_inputs():
+    assert literature.litvar_name({"_id": "litvar@#9739#p.Y993A", "pmids_count": 1}) == "p.Y993A"
+    assert literature.litvar_name({"_id": "litvar@rs997859026##", "pmids_count": 1, "rsid": "rs997859026"}) is None
+    assert literature.litvar_name({"_id": "litvar@#9739#", "pmids_count": 147}) is None
+    assert literature.recoder_input("p.R913C", "ENST00000262519.14", "ENSP00000262519.8") == "ENSP00000262519.8:p.R913C"
+    assert literature.recoder_input("p.D424fsX", "ENST00000262519.14", "ENSP00000262519.8") is None
+
+
+def test_stated_deletion_length_must_match_mapping():
+    # recoder mapped 'c.4582-2delAG' (two bases stated) to a one-base deletion
+    assert not literature.stated_deletion_ok("c.4582-2delAG", "NC_000016.10:30980736:A:")
+    assert literature.stated_deletion_ok("c.4582-2_4582-1delAG", "NC_000016.10:30980736:AG:")
+    assert literature.stated_deletion_ok("p.R913C", "NC_000016.10:30967554:C:T")
+
+
+@pytest.mark.parametrize("raw,expected", [
+    ("c.4582-2delAG/+", [("c.4582-2_4582-1delAG", None)]),
+    ("c.4582-2delAG and c.4596_4597insG", [("c.4582-2_4582-1delAG", None), ("c.4596_4597insG", None)]),
+    ("c.4582-1delAG", [("c.4582-1delAG", None)]),   # would cross the intron/exon boundary: left as is
+    ("c.100delCT", [("c.100_101delCT", None)]),
+    ("NM_014712.2 :c.4582-2_4582-1del", [("c.4582-2_4582-1del", "NM_014712.2")]),
+    ("c.3930_3940del CCCTGCGCCAG", [("c.3930_3940delCCCTGCGCCAG", None)]),
+    ("c.1067C &gt; T/p.Ser356Phe", [("c.1067C>T", None)]),
+    ("c.4582‐2_4582‐1del", [("c.4582-2_4582-1del", None)]),
+    ("p.P1313Afs ∗ 17", [("p.P1313Afs*17", None)]),
+    ("c.1553_1555del (p.Ser518del)", [("c.1553_1555del", None)]),
+    ("chr16:g.30976565del", []),
+])
+def test_clean_literature_notations(raw, expected):
+    # every raw string above was written verbatim by the extractor from a real paper
+    assert literature.clean_notations(raw) == expected

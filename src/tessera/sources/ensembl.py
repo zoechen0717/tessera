@@ -26,7 +26,7 @@ def release(f: Fetcher) -> str:
 
 def lookup_gene(f: Fetcher, symbol: str, rel: str) -> tuple[dict, str]:
     r = f.get(SOURCE, f"lookup/symbol/{symbol}", rel, f"{BASE}/lookup/symbol/homo_sapiens/{symbol}",
-              {"content-type": "application/json", "expand": 1, "mane": 1})
+              {"content-type": "application/json", "expand": 1, "mane": 1}, ttl_days=30)
     return r.json(), r.snapshot_id
 
 
@@ -39,7 +39,7 @@ def mane_select(gene: dict) -> dict:
 
 def chrom_accession(f: Fetcher, chrom: str, rel: str) -> tuple[str, str]:
     r = f.get(SOURCE, f"info/assembly/{chrom}", rel, f"{BASE}/info/assembly/homo_sapiens/{chrom}",
-              {"content-type": "application/json", "synonyms": 1})
+              {"content-type": "application/json", "synonyms": 1}, ttl_days=float("inf"))
     refseq = [s["name"] for s in r.json().get("synonyms", []) if s.get("dbname") == "RefSeq_genomic"]
     if len(refseq) != 1:
         raise SourceError(SOURCE, "accession_missing", f"no unique RefSeq accession for {chrom}")
@@ -48,7 +48,8 @@ def chrom_accession(f: Fetcher, chrom: str, rel: str) -> tuple[str, str]:
 
 def sequence(f: Fetcher, chrom: str, start: int, end: int, rel: str) -> tuple[str, str]:
     r = f.get(SOURCE, f"sequence/{chrom}:{start}-{end}", rel,
-              f"{BASE}/sequence/region/human/{chrom}:{start}..{end}:1", {"content-type": "application/json"})
+              f"{BASE}/sequence/region/human/{chrom}:{start}..{end}:1", {"content-type": "application/json"},
+              ttl_days=float("inf"))
     seq = r.json()["seq"].upper()
     if len(seq) != end - start + 1:
         raise SourceError(SOURCE, "invalid_source_payload", "sequence length does not match region")
@@ -57,13 +58,13 @@ def sequence(f: Fetcher, chrom: str, start: int, end: int, rel: str) -> tuple[st
 
 def protein_sequence(f: Fetcher, protein_id: str, rel: str) -> str:
     r = f.get(SOURCE, f"sequence/{protein_id}", rel, f"{BASE}/sequence/id/{protein_id}",
-              {"content-type": "application/json", "type": "protein"})
+              {"content-type": "application/json", "type": "protein"}, ttl_days=float("inf"))
     return r.json()["seq"]
 
 
 def uniprot_accession(f: Fetcher, protein_id: str, rel: str) -> str | None:
     r = f.get(SOURCE, f"xrefs/{protein_id}", rel, f"{BASE}/xrefs/id/{protein_id}",
-              {"content-type": "application/json", "external_db": "Uniprot/SWISSPROT"})
+              {"content-type": "application/json", "external_db": "Uniprot/SWISSPROT"}, ttl_days=30)
     ids = sorted({x["primary_id"] for x in r.json()})
     return ids[0] if len(ids) == 1 else None
 
@@ -75,7 +76,7 @@ def vep(f: Fetcher, alleles: list[tuple[str, int, str, str]], rel: str) -> dict[
         batch = alleles[i : i + VEP_BATCH]
         inputs = {f"{c} {p} . {r} {a} . . .": (c, p, r, a) for c, p, r, a in batch}
         resp = f.post_json(SOURCE, f"vep/batch{i // VEP_BATCH}", rel, f"{BASE}/vep/homo_sapiens/region",
-                           {"variants": list(inputs), **VEP_OPTIONS})
+                           {"variants": list(inputs), **VEP_OPTIONS}, ttl_days=float("inf"))
         for rec in resp.json():
             key = inputs.get(rec.get("input"))
             if key is not None:

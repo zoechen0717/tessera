@@ -19,6 +19,8 @@ M = TypeVar("M", bound=BaseModel)
 
 # Frozen inputs to ranking. Their combined digest is the evidence digest.
 FROZEN_FILES = (
+    "candidate_mentions.jsonl",
+    "identity_decisions.jsonl",
     "candidate_variants.jsonl",
     "memberships.jsonl",
     "annotations.jsonl",

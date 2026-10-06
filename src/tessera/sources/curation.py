@@ -32,7 +32,7 @@ def clinvar_records(f: Fetcher, symbol: str, batch: int = 200) -> list[tuple[dic
     for i in range(0, len(ids), batch):
         chunk = ids[i : i + batch]
         r = f.get("clinvar", f"esummary/{symbol}/{i // batch}", version, f"{EUTILS}/esummary.fcgi",
-                  {"db": "clinvar", "id": ",".join(chunk), "retmode": "json"})
+                  {"db": "clinvar", "id": ",".join(chunk), "retmode": "json"}, ttl_days=7)
         result = r.json()["result"]
         for uid in result.get("uids", []):
             out.append((result[uid], r.snapshot_id))
@@ -68,7 +68,7 @@ def clinvar_classification(rec: dict) -> dict:
 
 
 def uniprot_entry(f: Fetcher, accession: str) -> tuple[dict, str]:
-    r = f.get("uniprot", accession, "live", f"{UNIPROT}/{accession}.json")
+    r = f.get("uniprot", accession, "live", f"{UNIPROT}/{accession}.json", ttl_days=30)
     d = r.json()
     return d, r.snapshot_id
 
@@ -86,7 +86,7 @@ def functional_regions(entry: dict) -> list[tuple[int, int, str]]:
 
 
 def clingen_row(f: Fetcher, symbol: str) -> tuple[dict | None, str]:
-    r = f.get("clingen", "gene_curation_list_GRCh38", "live", CLINGEN_TSV, media="text/plain")
+    r = f.get("clingen", "gene_curation_list_GRCh38", "live", CLINGEN_TSV, media="text/plain", ttl_days=30)
     header = None
     for line in r.text().splitlines():
         if line.startswith("#Gene Symbol"):

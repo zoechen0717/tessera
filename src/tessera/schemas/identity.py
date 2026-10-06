@@ -87,6 +87,12 @@ class VariantMention(Strict):
         default=None, description="Set when split from a multiallelic record"
     )
     roles: list[str] = Field(default_factory=list)
+    resolution_method: str | None = Field(
+        default=None, description="How reported coordinates were derived upstream (e.g. variant_recoder:rsid)")
+    resolution_status: IdentityStatus | None = Field(
+        default=None, description="Upstream status for a mention without coordinates")
+    resolution_note: str | None = None
+    source_refs: list[str] = Field(default_factory=list, description="e.g. ClinVar:VCV…, PMID:…, SCHEMA:…")
 
 
 class IdentityDecision(Strict):

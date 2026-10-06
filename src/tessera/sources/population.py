@@ -34,7 +34,7 @@ query($symbol: String!) {
 
 def gnomad_gene(f: Fetcher, symbol: str) -> tuple[dict, str]:
     r = f.post_json("gnomad", f"gene/{symbol}", GNOMAD_DATASET, GNOMAD_API,
-                    {"query": _GNOMAD_QUERY, "variables": {"symbol": symbol}})
+                    {"query": _GNOMAD_QUERY, "variables": {"symbol": symbol}}, ttl_days=30)
     d = r.json()
     if d.get("errors"):
         raise SourceError("gnomad", "invalid_source_payload", str(d["errors"])[:300])
@@ -58,13 +58,13 @@ def gnomad_af(variant: dict) -> tuple[float | None, str | None]:
 
 
 def schema_fetch(f: Fetcher, gene_id: str) -> dict:
-    cfg = f.get("schema_browser", "config.js", "live", f"{SCHEMA_BASE}/config.js", media="text/plain")
+    cfg = f.get("schema_browser", "config.js", "live", f"{SCHEMA_BASE}/config.js", media="text/plain", ttl_days=30)
     text = cfg.text()
     config = json.loads(text.split("=", 1)[1].strip().rstrip(";"))
     ds = config["datasets"][config["datasetId"]]
-    gene = f.get("schema_browser", f"gene/{gene_id}", "live", f"{SCHEMA_BASE}/api/gene/{gene_id}")
+    gene = f.get("schema_browser", f"gene/{gene_id}", "live", f"{SCHEMA_BASE}/api/gene/{gene_id}", ttl_days=30)
     variants = f.get("schema_browser", f"gene/{gene_id}/variants", "live",
-                     f"{SCHEMA_BASE}/api/gene/{gene_id}/variants")
+                     f"{SCHEMA_BASE}/api/gene/{gene_id}/variants", ttl_days=30)
     return {
         "dataset_id": config["datasetId"],
         "reference_genome": ds["reference_genome"],

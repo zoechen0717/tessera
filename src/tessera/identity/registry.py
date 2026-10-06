@@ -72,8 +72,8 @@ def build_registry(
 
             has_coords = m.reported_chrom and m.reported_pos and m.reported_ref and m.reported_alt
             if not has_coords:
-                status = classify_text(m.raw_text) or IdentityStatus.INSUFFICIENT
-                why = {
+                status = m.resolution_status or classify_text(m.raw_text) or IdentityStatus.INSUFFICIENT
+                why = m.resolution_note or {
                     IdentityStatus.UNSUPPORTED: "protein-level description; compatible with "
                     "multiple DNA edits and not reverse-translated",
                     IdentityStatus.INSUFFICIENT: "no concrete genomic allele (rsIDs and free "
@@ -102,9 +102,9 @@ def build_registry(
                     mention_id=m.mention_id,
                     status=IdentityStatus.RESOLVED,
                     variant_ids=[a.variant_id],
-                    mapping_method="vcf_left_align",
+                    mapping_method=m.resolution_method or "vcf_left_align",
                     resource_versions=resources,
-                    justification=result.justification,
+                    justification=(f"{m.resolution_note}; " if m.resolution_note else "") + result.justification,
                 )
             )
             alias = Alias(
@@ -141,7 +141,7 @@ def _exclude(reg: Registry, m: VariantMention, decision_id: str, status: Identit
             decision_id=decision_id,
             mention_id=m.mention_id,
             status=status,
-            mapping_method="vcf_left_align" if m.reported_chrom else "text_classification",
+            mapping_method=m.resolution_method or ("vcf_left_align" if m.reported_chrom else "text_classification"),
             resource_versions=resources,
             justification=why,
             validation_errors=[why],

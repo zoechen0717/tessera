@@ -1,0 +1,52 @@
+# Evaluation run: PTEN / autism (evals/pten_mave_preregistration.md). Choices marked PROVISIONAL await owner review.
+gene: PTEN
+disease:
+  input: autism spectrum disorder
+  concept_id: "MONDO:0005258"
+flank: 2000                      # bp around the gene in the reference slice
+
+routes:
+  clinvar: true                  # all gene-level ClinVar records, disease-matched or not
+  schema_browser: false          # SCHEMA is schizophrenia-only; no autism case/control source wired
+  litvar: true                   # LitVar2 literature variants, resolved with Ensembl variant_recoder
+  literature_deep_read: false    # OFF: MAVE papers must not enter as functional evidence
+manual_variants: []              # e.g. the existing scPRIME panel for a recall check
+
+# SCHEMA is a schizophrenia case-control exome study, so its cases match the
+# query disease exactly. This is a declared mapping, not inferred.
+case_cohorts: {}
+
+scope:
+  allowed_consequences:
+    - stop_gained
+    - frameshift_variant
+    - splice_acceptor_variant
+    - splice_donor_variant
+    - splice_donor_5th_base_variant
+    - splice_region_variant
+    - splice_donor_region_variant
+    - splice_polypyrimidine_tract_variant
+    - inframe_insertion
+    - inframe_deletion
+    - missense_variant
+    - synonymous_variant
+    - start_lost
+    - stop_lost
+    - protein_altering_variant
+
+# PROVISIONAL mechanism rule (mechanism_rule_v0.1)
+mechanism_rule:
+  clingen_hi_scores_for_lof: [3]
+  burden_max_p: 2.5e-6           # SCHEMA PTV burden p-value threshold; owner to confirm
+
+screen_context:
+  species: Homo sapiens
+  cell_type: iPSC-derived neuron
+  assay: scPRIME
+  editing_mode: prime_editing
+  genotype_target: heterozygous
+  host_background: null
+
+policy: ../config/nomination_v0.1.yaml
+requested_panel_size: null
+

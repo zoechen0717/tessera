@@ -1,0 +1,6 @@
+# Ground truth for evals/pten_mave_preregistration.md (never a ranking input)
+run: ../runs/pten/run
+score_sets:
+  "urn:mavedb:00000054-a-1": {role: primary, readout: lipid phosphatase, abnormal_max: -2.13, normal_min: -1.11}
+  "urn:mavedb:00000102-0-1": {role: secondary, readout: VAMP-seq abundance}
+  "urn:mavedb:00001244-a-1": {role: secondary, readout: neuron morphology (VIS-seq)}

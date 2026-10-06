@@ -17,7 +17,7 @@ class SourceSnapshot(Strict):
     source_version: str
     source_uri: str | None = None
     retrieved_at: str
-    media_type: Literal["application/json", "text/plain"]
+    media_type: Literal["application/json", "text/plain", "application/zip"]
     raw_content_digest: str
     storage_policy: Literal["retained", "metadata_only", "restricted"] = "retained"
     access_status: Literal[

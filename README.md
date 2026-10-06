@@ -41,7 +41,7 @@ are flagged as having done no work. All of this is **provisional policy**.
 ## Quick start
 
 ```bash
-./.venv/bin/python -m pytest tests -q            # 51 tests
+./.venv/bin/python -m pytest tests -q            # 59 tests
 # real gene (network, ~1 min): fetch → run → replay
 PYTHONPATH=src ./.venv/bin/python -m tessera.cli fetch --request requests/setd1a_schizophrenia.yaml --output runs/setd1a/input
 PYTHONPATH=src ./.venv/bin/python -m tessera.cli run --input runs/setd1a/input/input.yaml --output runs/setd1a/run
@@ -58,6 +58,7 @@ is an x86_64 build under Rosetta.
 
 ```
 config/
+  llm.yaml                          LLM provider profiles (keys via env / git-ignored .env)
   nomination_v0.1.yaml              key order, strata, one predictor per stratum
   mechanism_concordance_v0.1.yaml   mechanism × class / sub-class → concordance
 src/tessera/
@@ -68,6 +69,7 @@ src/tessera/
   ranking/      policy loader, per-allele features, stratified ranking
   sources/      M1a adapters (Ensembl/VEP, gnomAD, SCHEMA, ClinVar, UniProt, ClinGen)
   m1a.py        fetch: sources → snapshots → input directory
+  llm.py        provider-neutral LLM client: profiles, budgets, recorded outputs, replay
   pipeline.py   freeze → derive; run; replay
   bundle.py     canonical JSONL bundle and digests
   reporting.py  ranked_variants.csv, report.md (deterministic)

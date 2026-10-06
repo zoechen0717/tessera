@@ -12,13 +12,14 @@ from tessera.schemas.features import FeatureRow, RankedRow, StratumReport
 
 CSV_COLUMNS = [
     "primary_channel", "stratum", "tier_rank", "tie_group_id", "tie_group_size", "display_index",
-    "variant_id", "label", "K", "O", "P_predictor", "P", "ordering_tuple", "characterization",
+    "variant_id", "label", "hgvs_c", "hgvs_p", "K", "O", "P_predictor", "P", "ordering_tuple", "characterization",
     "roles", "consequence_terms", "k_basis", "o_search_status", "editing_status", "flags",
-    "contributing_link_ids", "policy_id", "policy_status",
+    "contributing_link_ids", "discovery_routes", "source_refs", "literature_evidence", "policy_id", "policy_status",
 ]
 
 
-def render_csv(ranked: list[RankedRow], features: dict[str, FeatureRow]) -> str:
+def render_csv(ranked: list[RankedRow], features: dict[str, FeatureRow], provenance: dict | None = None) -> str:
+    provenance = provenance or {}
     buf = io.StringIO()
     w = csv.writer(buf, lineterminator="\n")
     w.writerow(CSV_COLUMNS)
@@ -28,10 +29,16 @@ def render_csv(ranked: list[RankedRow], features: dict[str, FeatureRow]) -> str:
         links = ";".join(f"{k}:{','.join(v)}" for k, v in sorted(f.contributing_link_ids.items()))
         w.writerow([
             r.primary_channel.value, r.stratum, r.tier_rank, r.tie_group_id, r.tie_group_size,
-            r.display_index, r.variant_id, r.label, f.k.value, f.o.value, f.p_predictor or "",
+            r.display_index, r.variant_id, r.label,
+            provenance.get(r.variant_id, {}).get("hgvs_c", ""), provenance.get(r.variant_id, {}).get("hgvs_p", ""),
+            f.k.value, f.o.value, f.p_predictor or "",
             p, "|".join(r.ordering_tuple), f.characterization.value, ";".join(f.roles),
             ";".join(f.consequence_terms), f.k_basis, f.o_search_status, "not_assessed",
-            ";".join(f.flags), links, f.policy_id, f.policy_status,
+            ";".join(f.flags), links,
+            ";".join(provenance.get(r.variant_id, {}).get("routes", [])),
+            ";".join(provenance.get(r.variant_id, {}).get("refs", [])),
+            ";".join(provenance.get(r.variant_id, {}).get("lit", [])),
+            f.policy_id, f.policy_status,
         ])
     return buf.getvalue()
 
@@ -51,7 +58,9 @@ def render_report(
     link_states: dict[str, str],
     obs_search: dict,
     source_failures: list[str] = (),
+    provenance: dict | None = None,
 ) -> str:
+    provenance = provenance or {}
     gene = scope["gene"]
     L: list[str] = []
     add = L.append
@@ -84,8 +93,12 @@ def render_report(
     add(f"- Evidence links: {len(link_states)} — "
         + ", ".join(f"{k} {v}" for k, v in sorted(states.items()))
         + (f" (of the rejected, {n_scope_links} belong to out-of-scope alleles)" if n_scope_links else ""))
-    add("- Not assessed in this run: editing feasibility (all `not_assessed`), GEO datasets, "
-        "literature discovery (M1b).")
+    lit = [r for r in routes if r in ("litvar", "literature", "supplement")]
+    add("- Not assessed in this run: editing feasibility (all `not_assessed`), GEO datasets"
+        + ("" if lit else ", literature discovery") + ".")
+    if lit:
+        add("- Literature routes used: " + ", ".join(lit) + ". LLM-extracted claims are `accepted_auto` "
+            "after host quote checks, not human-reviewed.")
     if scope.get("requested_panel_size") is not None:
         add(f"- Requested panel size {scope['requested_panel_size']}: **unsupported** — panel step "
             "not implemented.")
@@ -146,13 +159,17 @@ def render_report(
             current = key
             add(f"### {key[0]} / {key[1]}")
             add("")
-            add("| tier | allele | K | O | P | characterization | flags |")
-            add("|---|---|---|---|---|---|---|")
+            add("| tier | allele | K | O | P | characterization | sources | flags |")
+            add("|---|---|---|---|---|---|---|---|")
         f = feat[r.variant_id]
         p = "—" if f.p is None else (f"{f.p.value:g}" if f.p.is_present else f"missing ({f.p.status.value})")
         tier = f"{r.tier_rank}" + (f" (tie ×{r.tie_group_size})" if r.tie_group_size > 1 else "")
-        add(f"| {tier} | `{r.label}` | {f.k.value} | {f.o.value} | {p} | {f.characterization.value} | "
-            f"{', '.join(f.flags) or '—'} |")
+        pv = provenance.get(r.variant_id, {})
+        pmids = [x for x in pv.get("refs", []) if x.startswith("PMID:")]
+        src = ", ".join(pv.get("routes", [])) + (f"; {len(pmids)} PMID" if pmids else "")
+        hg = pv.get("hgvs_p") or pv.get("hgvs_c") or ""
+        add(f"| {tier} | `{r.label}` {hg} | {f.k.value} | {f.o.value} | {p} | {f.characterization.value} | "
+            f"{src or '—'} | {', '.join(f.flags) or '—'} |")
     add("")
 
     add("## Excluded mentions")
